@@ -50,10 +50,11 @@ REGISTER_SYSTEM( "mapvote", &__init__, undefined )
 
 function __init__()
 {
-	callback::on_start_gametype( &init );
-	callback::on_connect( &on_player_connect );
-	callback::on_spawned( &on_player_spawned );
-    
+    callback::on_start_gametype( &init );
+    callback::on_connect( &on_player_connect );
+    callback::on_spawned( &on_player_spawned );
+}
+
 function init()
 {
     precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
@@ -62,7 +63,7 @@ function init()
     precacheshader("ui_arrow_right");
 
     precacheshader("white");
-	MapvoteConfigurate();
+    MapvoteConfigurate();
 }
 
 function MapvoteConfigurate()
