@@ -644,11 +644,11 @@ function insert_map(key, displayname3, displayname6, image, exec_rotation)
 
 function init_maps_data()
 {
-	level.maps_data = [];
+    level.maps_data = [];
     insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
     insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
     insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_sector"); 
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_apartments"); 
 
     /*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
