@@ -1,4 +1,4 @@
-# Plutonium: Black ops II Mapvote
+# [BOIII](https://boiii.re/): Black ops III Mapvote
 Developed by [@DoktorSAS](https://twitter.com/DoktorSAS)
 
 This project is a project that started in March 2020. The script allows players to vote for the next map or/and mode to be played in the next game.
