@@ -56,12 +56,8 @@ function __init__()
     
 function init()
 {
-	/*
-        precacheStatusIcon("compassping_friendlyfiring_mp");
-        precacheStatusIcon("compassping_enemy");
-        precacheshader("white");
-    */
-
+    precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
+    precacheStatusIcon("compassping_friendlyyelling_mp");
     precacheshader("ui_arrow_left");
     precacheshader("ui_arrow_right");
 
@@ -133,58 +129,105 @@ function IsInizialized(dvar)
 	return result != "";
 }
 
-//TODO: Check if g_gametype value is associated with something or with the correct gametype name
-function GametypeToName(gametype) 
-{
-	switch (tolower(gametype))
-	{
-	case "dm":
-		return "Free for all";
-
-	case "tdm":
-		return "Team Deathmatch";
-
-	case "sd":
-		return "Search & Destroy";
-
-	case "conf":
-		return "Kill Confirmed";
-
-	case "ctf":
-		return "Capture the Flag";
-
-	case "dom":
-		return "Domination";
-
-	case "dem":
-		return "Demolition";
-
-	case "gun":
-		return "Gun Game";
-
-	case "hq":
-		return "Headquaters";
-
-	case "koth":
-		return "Hardpoint";
-
-	case "oic":
-		return "One in the chamber";
-
-	case "oneflag":
-		return "One-Flag CTF";
-
-	case "sas":
-		return "Sticks & Stones";
-
-	case "shrp":
-		return "Sharpshooter";
-
-	}
-	return "invalid";
-}
-
 // mv_client.gsc
+function MapvotePlayerUI()
+{
+	self setblur(getDvarFloat("mv_blur"), 1.5);
+
+	scroll_color = getColor(getDvar("mv_scrollcolor"));
+	bg_color = getColor(getDvar("mv_backgroundcolor"));
+	self FreezeControlsAllowLook(0);
+	boxes = [];
+	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, scroll_color, "menu_zm_popup", 2, 0);
+	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+
+	if(getDvarInt("mv_extramaps") == 1)
+	{
+		dynamic_position = 100;
+		boxes[3] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+		boxes[4] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+		boxes[5] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+		boxes[3] affectElement("y", 1.2, -50 + dynamic_position);
+		boxes[4] affectElement("y", 1.2, -50 + dynamic_position);
+		boxes[5] affectElement("y", 1.2, -50 + dynamic_position);
+		boxes[0] affectElement("y", 1.2, -100);
+		boxes[1] affectElement("y", 1.2, -100);
+		boxes[2] affectElement("y", 1.2, -100);
+	}
+	else
+	{
+		boxes[0] affectElement("y", 1.2, -50);
+		boxes[1] affectElement("y", 1.2, -50);
+		boxes[2] affectElement("y", 1.2, -50);
+	}
+	
+
+	self thread ClientFixAngle();
+	self thread destroyBoxes(boxes);
+
+	self notifyonplayercommand("left", "+attack");
+	self notifyonplayercommand("right", "+speed_throw");
+	self notifyonplayercommand("left", "+moveright");
+	self notifyonplayercommand("right", "+moveleft");
+	self notifyonplayercommand("select", "+usereload");
+	self notifyonplayercommand("select", "+activate");
+	self notifyonplayercommand("select", "+gostand");
+
+	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
+	level waittill("mv_start_vote");
+	boxes[0] affectElement("alpha", 0.2, 1);
+	boxes[1] affectElement("alpha", 0.2, 1);
+	boxes[2] affectElement("alpha", 0.2, 1);
+	if(boxes.size > 3)
+	{
+		boxes[3] affectElement("alpha", 0.2, 1);
+		boxes[4] affectElement("alpha", 0.2, 1);
+		boxes[5] affectElement("alpha", 0.2, 1);
+	}
+	index = 0;
+	isVoting = 1;
+	while (level.__mapvote["time"] > 0 && isVoting)
+	{
+		command = self waittill_any_return("left", "right", "select");
+		if (command == "right")
+		{
+			index++;
+			if (index == boxes.size)
+				index = 0;
+		}
+		else if (command == "left")
+		{
+			index--;
+			if (index < 0)
+				index = boxes.size - 1;
+		}
+
+		if (command == "select")
+		{
+			isVoting = 0;
+		}
+		else
+		{
+			for (i = 0; i < boxes.size; i++)
+			{
+				if (i != index)
+					boxes[i] affectElement("color", 0.2, bg_color);
+				else
+					boxes[i] affectElement("color", 0.2, scroll_color);
+			}
+		}
+	}
+	if (!isVoting)
+	{
+		self.statusicon = "compassping_friendlyyelling_mp"; // Green dot
+		vote = "vote" + (index + 1);
+		level notify(vote);
+		select_color = getColor(getDvar("mv_selectcolor"));
+		boxes[index] affectElement("color", 0.2, select_color);
+		level waittill("mv_destroy_hud");
+	}
+}
 
 function DestroyBoxes(boxes)
 {
@@ -216,6 +259,36 @@ function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 
 // mv_server.gsc
 
+function MapvoteGetMapsThatCanBeVoted(mapslist)
+{
+	if (getDvar("mv_excludedmaps") != "")
+	{
+		maps = [];
+		maps = strTok(getDvar("mv_excludedmaps"), " ");
+		foreach (map in maps)
+		{
+			arrayremovevalue(mapslist, map);
+		}
+	}
+	return mapslist;
+}
+
+function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
+{
+	mapschoosed = [];
+	for (i = 0; i < times; i++)
+	{
+		index = randomIntRange(0, mapsIDs.size);
+		map = mapsIDs[index];
+		mapschoosed[i] = map;
+		logPrint("map;"+map+";index;"+index+"\n");
+		mapsIDs = ArrayRemoveElement(mapsIDs, map);
+		//arrayremovevalue(mapsIDs, map);
+	}
+
+	return mapschoosed;
+}
+
 function MapvoteStart()
 {
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
@@ -227,14 +300,14 @@ function MapvoteStart()
 		//mapslist = [];
 		maps_keys = [];
 		maps_keys = strTok(getDvar("mv_maps"), " ");
-		//mapslist = mv_GetMapsThatCanBeVoted(maps_keys); // Remove blacklisted maps
+		mapslist = MapvoteGetRandomMaps(maps_keys); // Remove blacklisted maps
 		times = 3;
 		if(getDvarInt("mv_extramaps") == 1)
 		{
 			times = 6;
 		}
 
-		mapschoosed = mv_GetRandomMaps(maps_keys, times);
+		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
 		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
@@ -251,13 +324,13 @@ function MapvoteStart()
 			//	player thread mv_PlayerUI();
 		}
 		wait 0.2;
-		//level thread mv_ServerUI();
+		level thread MapvoteServerUI();
 
 		VoteManager();
 	}
 }
 
-function mv_ServerUI()
+function MapvoteServerUI()
 {
 	preCacheShader(level.mapvote["map1"].shader);
 	preCacheShader(level.mapvote["map2"].shader);
@@ -515,7 +588,7 @@ function VoteManager()
 		}
 	}
 
-	//winner = mv_GetMostVotedMap(votes);
+	//winner = MapvoteGetMostVotedMap(votes);
 	//map = winner.map;
 
 	foreach(vote in votes) 
@@ -523,10 +596,25 @@ function VoteManager()
 		votes.votes affectElement("alpha", 0.5, 0);
 	}
 
-	//mv_SetRotation(map.mapid);
+	MapvoteSetRotation(map.exec_rotation, map.gametype);
 
 	wait 1.2;
 
+}
+
+function MapvoteSetRotation(mapid, gametype)
+{
+	array = strTok(gametype, ";");
+	str = "";
+	if (array.size > 1)
+	{
+		str = "exec " + array[1];
+	}
+	logPrint("mapvote//gametype//" + array[0] + "//executing//" + str + "\n");
+	setdvar("g_gametype", array[0]);
+	setdvar("sv_maprotationcurrent", str + " map " + mapid);
+	setdvar("sv_maprotation", str + " map " + mapid);
+	level notify("mv_ended");
 }
 
 
@@ -556,8 +644,11 @@ function insert_map(key, displayname3, displayname6, image, exec_rotation)
 function init_maps_data()
 {
 	level.maps_data = [];
-    insertMap("mp_sector", &"Combine",  &"Combine - ", "loadscreen_mp_sectort", "mp_sector");
-    
+    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
+    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_sector"); 
+
     /*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
 		How to do it? 
@@ -698,4 +789,83 @@ function affectElement(type, time, value)
         self.alpha = value;
     if(type == "color")
         self.color = value;
+}
+
+
+function GametypeToName(gametype) 
+{
+	switch (tolower(gametype))
+	{
+	case "dm":
+		return "Free for all";
+
+	case "tdm":
+		return "Team Deathmatch";
+        
+    case "ball":
+		return "Uplink";
+
+	case "sd":
+		return "Search & Destroy";
+
+    case "sr":
+		return "Search & Rescue";
+
+    case "dom":
+		return "Domination";
+
+	case "dem":
+		return "Demolition";
+
+	case "conf":
+		return "Kill Confirmed";
+
+	case "ctf":
+		return "Capture the Flag";
+
+	case "shrp":
+		return "Sharpshooter";
+
+	case "gun":
+		return "Gun Game";
+    
+	case "sas":
+		return "Sticks & Stones";
+
+	case "hq":
+		return "Headquaters";
+
+	case "koth":
+		return "Hardpoint";
+
+	case "escort":
+		return "Safeguard";
+
+	case "clean":
+		return "Fracture";
+
+    case "prop":
+		return "Prop Hunt";
+
+    case "infect":
+		return "Infected";
+
+	case "sniperonly":
+		return "Snipers Only";
+
+	}
+	return "invalid";
+}
+
+function ArrayRemoveElement(array, todelete)
+{
+	newarray = [];
+	foreach(element in array) 
+	{
+		if(element != todelete)
+		{
+			newarray[newarray.size] = element;
+		}
+	}
+	return newarray;
 }
