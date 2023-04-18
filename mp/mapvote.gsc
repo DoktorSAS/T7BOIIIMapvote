@@ -678,11 +678,11 @@ function CreateString(input, font, fontScale, align, relative, x, y, color, alph
 
 	if (!isDefined(isValue))
 	{
-		hud hud::setText(input);
+		hud setText(input);
 	}
 	else
 	{
-		hud hud::setValue(int(input));
+		hud setValue(int(input));
 	}
 		
 	hud hud::setPoint(align, relative, x, y);
