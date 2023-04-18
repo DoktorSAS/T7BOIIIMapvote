@@ -79,7 +79,7 @@ function MapvoteConfigurate()
 
 	// PreCache maps images
 	maps_data = [];
-	maps_data = buildmaps_data();
+	maps_data = BuildMapsData();
 
 	foreach (map in maps_data)
 	{
@@ -642,13 +642,22 @@ function insert_map(key, displayname3, displayname6, image, exec_rotation)
 	level.maps_data[key].image = image;
 }
 
-function init_maps_data()
+function BuildMapsData()
 {
     level.maps_data = [];
-    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
-    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_apartments"); 
+    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); // Aquarium
+    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire"); // Breach
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_", "mp_sector"); // Combine
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_sector", "mp_apartments"); // Evac
+    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", ""); // Exodus
+    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled"); // Fringe
+    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc"); // Havoc
+    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_loadscreen_ethiopia", ""); // Hunted
+    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_loadscreen_infection", "mp_infection"); // Infection
+    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_loadscreen_metro", "mp_metro"); // Metro
+    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_loadscreen_redwood", "mp_redwood"); // Redwood
+    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_loadscreen_stronghold", "mp_stronghold"); // Redwood
+    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_loadscreen_nuketown_x", "mp_nuketown_x"); // Nuk3town
 
     /*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
