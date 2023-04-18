@@ -645,19 +645,49 @@ function insert_map(key, displayname3, displayname6, image, exec_rotation)
 function BuildMapsData()
 {
     level.maps_data = [];
-    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); // Aquarium
-    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire"); // Breach
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_", "mp_sector"); // Combine
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_sector", "mp_apartments"); // Evac
-    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", ""); // Exodus
-    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled"); // Fringe
-    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc"); // Havoc
-    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_loadscreen_ethiopia", ""); // Hunted
-    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_loadscreen_infection", "mp_infection"); // Infection
-    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_loadscreen_metro", "mp_metro"); // Metro
-    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_loadscreen_redwood", "mp_redwood"); // Redwood
-    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_loadscreen_stronghold", "mp_stronghold"); // Redwood
-    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_loadscreen_nuketown_x", "mp_nuketown_x"); // Nuk3town
+    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
+    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_", "mp_sector");
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_sector", "mp_apartments");
+    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", "");
+    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled");
+    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc");
+    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_loadscreen_ethiopia", "");
+    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_loadscreen_infection", "mp_infection");
+    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_loadscreen_metro", "mp_metro");
+    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_loadscreen_redwood", "mp_redwood");
+    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_loadscreen_stronghold", "mp_stronghold");
+    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_loadscreen_nuketown_x", "mp_nuketown_x");
+
+
+    // Awakening DLC
+    insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_loadscreen_crucible", "mp_crucible");
+    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_loadscreen_rise", "");
+    insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_loadscreen_skyjacked", "mp_skyjacked");
+    insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_loadscreen_", "");
+    insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_loadscreen_waterpark", "mp_waterpark");
+
+    // Eclipse DLC
+    insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_loadscreen_kung_fu", "mp_kung_fu");
+    insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_loadscreen_conduit", "mp_conduit");
+    insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_loadscreen_aerospace", "mp_aerospace");
+    insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_loadscreen_banzai", "mp_banzai");
+
+    // Descent DLC
+    insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_loadscreen_shrine", "mp_shrine");
+    insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_loadscreen_cryogen", "mp_cryogen");
+    insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_loadscreen_rome", "mp_rome");
+    insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_loadscreen_arena", "mp_arena");
+
+    // Salvation DLC
+    insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_loadscreen_ruins", "mp_ruins");
+    insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_loadscreen_miniature", "mp_miniature");
+    insertMap("mp_rome", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_loadscreen_rome", "mp_rome");
+    insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_loadscreen_city", "mp_city");
+
+    // Bonus Maps
+    insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_loadscreen_veiled_heyday", "mp_veiled_heyday"); 
+    insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_loadscreen_redwood_ice", "mp_redwood_ice"); 
 
     /*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
