@@ -118,7 +118,7 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 // utils.gsc
 function SetDvarIfNotInizialized(dvar, value)
 {
-	if (!IsInizialized(dvar))
+    if (!IsInizialized(dvar))
     {
         setDvar(dvar, value);
     }
