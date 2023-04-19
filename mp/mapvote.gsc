@@ -647,8 +647,8 @@ function BuildMapsData()
     level.maps_data = [];
     insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
     insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_sector", "mp_apartments");
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_apartments");
     insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", "");
     insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled");
     insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc");
