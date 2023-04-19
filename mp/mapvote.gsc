@@ -647,8 +647,8 @@ function BuildMapsData()
     level.maps_data = [];
     insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
     insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_sector", "mp_apartments");
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_apartments");
     insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", "");
     insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled");
     insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc");
@@ -662,7 +662,7 @@ function BuildMapsData()
 
     // Awakening DLC
     insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_loadscreen_crucible", "mp_crucible");
-    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_loadscreen_rise", "");
+    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_loadscreen_rise", "mp_rise");
     insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_loadscreen_skyjacked", "mp_skyjacked");
     insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_loadscreen_", "");
     insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_loadscreen_waterpark", "mp_waterpark");
@@ -682,7 +682,7 @@ function BuildMapsData()
     // Salvation DLC
     insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_loadscreen_ruins", "mp_ruins");
     insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_loadscreen_miniature", "mp_miniature");
-    insertMap("mp_rome", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_loadscreen_rome", "mp_rome");
+    insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_loadscreen_western", "mp_western");
     insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_loadscreen_city", "mp_city");
 
     // Bonus Maps
