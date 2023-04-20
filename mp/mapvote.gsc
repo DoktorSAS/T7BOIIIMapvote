@@ -18,10 +18,37 @@
 #using scripts\shared\hud_message_shared;
 #using scripts\shared\hud_shared;
 
-#using scripts\shared\weapons\_weapon_utils;
-
 #insert scripts\shared\shared.gsh;
-#insert scripts\shared\statstable_shared.gsh;
+
+#precache( "material", "white" );
+#precache( "material", "ui_arrow_left" );
+#precache( "material", "ui_arrow_right" );
+
+// Defaults 
+#precache( "material", "img_t7_menu_mp_loadscreen_biodome" );
+#precache( "material", "img_t7_menu_mp_loadscreen_spire" );
+#precache( "material", "img_t7_menu_mp_loadscreen_sector" );
+#precache( "material", "img_t7_menu_mp_loadscreen_apartments" );
+#precache( "material", "img_t7_menu_mp_loadscreen_chinatown" );
+#precache( "material", "img_t7_menu_mp_loadscreen_veiled" );
+#precache( "material", "img_t7_menu_mp_loadscreen_havoc" );
+#precache( "material", "img_t7_menu_mp_loadscreen_ethiopia" );
+#precache( "material", "img_t7_menu_mp_loadscreen_infection" );
+#precache( "material", "img_t7_menu_mp_loadscreen_metro" );
+#precache( "material", "img_t7_menu_mp_loadscreen_redwood" );
+#precache( "material", "img_t7_menu_mp_loadscreen_stronghold" );
+#precache( "material", "img_t7_menu_mp_loadscreen_nuketown_x" );
+// Awakening DLC
+#precache( "material", "img_t7_menu_mp_loadscreen_crucible" );
+#precache( "material", "img_t7_menu_mp_loadscreen_rise" );
+#precache( "material", "img_t7_menu_mp_loadscreen_skyjacked" );
+#precache( "material", "img_t7_menu_mp_loadscreen_waterpark" );
+
+// Eclipse DLC
+#precache( "material", "img_t7_menu_mp_loadscreen_kung_fu" );
+#precache( "material", "img_t7_menu_mp_loadscreen_conduit" );
+#precache( "material", "img_t7_menu_mp_loadscreen_aerospace" );
+#precache( "material", "img_t7_menu_mp_loadscreen_banzai" );
 
 /*
 	Mod: Mapvote Menu
@@ -44,12 +71,18 @@
 	TODO: List of supported features
 */
 
+
+
 #namespace mapvote;
 
 REGISTER_SYSTEM( "mapvote", &__init__, undefined )
 
 function __init__()
 {
+	// this is now handled in code ( not lan )
+	// see s_nextScriptClientId 
+	level.clientid = 0;
+
     callback::on_start_gametype( &init );
     callback::on_connect( &on_player_connect );
     callback::on_spawned( &on_player_spawned );
@@ -57,12 +90,8 @@ function __init__()
 
 function init()
 {
-    precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
-    precacheStatusIcon("compassping_friendlyyelling_mp");
-    precacheshader("ui_arrow_left");
-    precacheshader("ui_arrow_right");
-
-    precacheshader("white");
+    //precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
+    //precacheStatusIcon("compassping_friendlyyelling_mp");
     MapvoteConfigurate();
 }
 
@@ -75,7 +104,7 @@ function MapvoteConfigurate()
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
-	SetDvarIfNotInizialized("mv_maps", "");
+	SetDvarIfNotInizialized("mv_maps", "mp_biodome mp_spire mp_sector mp_apartments mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_redwood mp_stronghold mp_nuketown_x mp_shrine mp_ruins mp_cryogen mp_rome mp_crucible mp_kung_fu mp_miniature mp_western mp_conduit mp_rise mp_arena mp_city mp_skyjacked mp_aerospace mp_waterpark mp_banzai mp_veiled_heyday mp_redwood_ice");
 
 	// PreCache maps images
 	maps_data = [];
@@ -83,7 +112,7 @@ function MapvoteConfigurate()
 
 	foreach (map in maps_data)
 	{
-		precacheshader(map.image);
+		//precacheshader(map.image);
 	}
 
 	// Setting default values if needed
@@ -105,13 +134,23 @@ function MapvoteConfigurate()
 
 function on_player_connect()
 {
-	
+	self.clientid = matchRecordNewPlayer( self );
+	if ( !isdefined( self.clientid ) || self.clientid == -1 )
+	{
+		self.clientid = level.clientid;
+		level.clientid++;	// Is this safe? What if a server runs for a long time and many people join/leave
+	}
+
+	/#
+	PrintLn( "client: " + self.name + " clientid: " + self.clientid);
+	#/
 }
 
 function on_player_spawned() // Patch for blur effect persisting (TODO: This issue is a BO2 issue, i don't know if BO3 have the same bug)
 {
 	self endon("disconnect");
 	level endon("game_ended");
+	level thread MapvoteStart();
 	self setblur(0, 0);
 }
 
@@ -126,7 +165,7 @@ function SetDvarIfNotInizialized(dvar, value)
 
 function IsInizialized(dvar)
 {
-	result = getDvar(dvar);
+	result = GetDvarString(dvar);
 	return result != "";
 }
 
@@ -135,20 +174,20 @@ function MapvotePlayerUI()
 {
 	self setblur(getDvarFloat("mv_blur"), 1.5);
 
-	scroll_color = getColor(getDvar("mv_scrollcolor"));
-	bg_color = getColor(getDvar("mv_backgroundcolor"));
+	scroll_color = getColor(GetDvarString("mv_scrollcolor"));
+	bg_color = getColor(GetDvarString("mv_backgroundcolor"));
 	self FreezeControlsAllowLook(0);
 	boxes = [];
-	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, scroll_color, "menu_zm_popup", 2, 0);
-	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
-	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, scroll_color, "white", 2, 0);
+	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "white", 2, 0);
+	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "white", 2, 0);
 
 	if(getDvarInt("mv_extramaps") == 1)
 	{
 		dynamic_position = 100;
-		boxes[3] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
-		boxes[4] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
-		boxes[5] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "menu_zm_popup", 2, 0);
+		boxes[3] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, bg_color, "white", 2, 0);
+		boxes[4] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "white", 2, 0);
+		boxes[5] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "white", 2, 0);
 		boxes[3] affectElement("y", 1.2, -50 + dynamic_position);
 		boxes[4] affectElement("y", 1.2, -50 + dynamic_position);
 		boxes[5] affectElement("y", 1.2, -50 + dynamic_position);
@@ -167,13 +206,16 @@ function MapvotePlayerUI()
 	self thread ClientFixAngle();
 	self thread destroyBoxes(boxes);
 
-	self notifyonplayercommand("left", "+attack");
-	self notifyonplayercommand("right", "+speed_throw");
-	self notifyonplayercommand("left", "+moveright");
-	self notifyonplayercommand("right", "+moveleft");
-	self notifyonplayercommand("select", "+usereload");
-	self notifyonplayercommand("select", "+activate");
-	self notifyonplayercommand("select", "+gostand");
+	/*
+		TODO: notifyonplayercommand do not exist so we need to find a workaround. 
+		self notifyonplayercommand("left", "+attack");
+		self notifyonplayercommand("right", "+speed_throw");
+		self notifyonplayercommand("left", "+moveright");
+		self notifyonplayercommand("right", "+moveleft");
+		self notifyonplayercommand("select", "+usereload");
+		self notifyonplayercommand("select", "+activate");
+		self notifyonplayercommand("select", "+gostand");
+	*/
 
 	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
@@ -190,7 +232,7 @@ function MapvotePlayerUI()
 	isVoting = 1;
 	while (level.__mapvote["time"] > 0 && isVoting)
 	{
-		command = self waittill_any_return("left", "right", "select");
+		command = self util::waittill_any_return("left", "right", "select");
 		if (command == "right")
 		{
 			index++;
@@ -224,7 +266,7 @@ function MapvotePlayerUI()
 		self.statusicon = "compassping_friendlyyelling_mp"; // Green dot
 		vote = "vote" + (index + 1);
 		level notify(vote);
-		select_color = getColor(getDvar("mv_selectcolor"));
+		select_color = getColor(GetDvarString("mv_selectcolor"));
 		boxes[index] affectElement("color", 0.2, select_color);
 		level waittill("mv_destroy_hud");
 	}
@@ -241,7 +283,7 @@ function DestroyBoxes(boxes)
 	wait 0.5;
 	foreach(box in boxes)
 	{
-		box destroyElem();
+		box hud::destroyElem();
 	}
 }
 
@@ -252,7 +294,7 @@ function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 	level waittill("mv_start_vote");
 	angles = self getPlayerAngles();
 
-	self waittill_any("left", "right");
+	self util::waittill_any("left", "right");
 	if (self getPlayerAngles() != angles)
 		self setPlayerAngles(angles);
 }
@@ -262,10 +304,10 @@ function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 
 function MapvoteGetMapsThatCanBeVoted(mapslist)
 {
-	if (getDvar("mv_excludedmaps") != "")
+	if (GetDvarString("mv_excludedmaps") != "")
 	{
 		maps = [];
-		maps = strTok(getDvar("mv_excludedmaps"), " ");
+		maps = strTok(GetDvarString("mv_excludedmaps"), " ");
 		foreach (map in maps)
 		{
 			arrayremovevalue(mapslist, map);
@@ -300,7 +342,7 @@ function MapvoteStart()
 		level.mapvote_started = 1;
 		//mapslist = [];
 		maps_keys = [];
-		maps_keys = strTok(getDvar("mv_maps"), " ");
+		maps_keys = strTok(GetDvarString("mv_maps"), " ");
 		mapslist = MapvoteGetRandomMaps(maps_keys); // Remove blacklisted maps
 		times = 3;
 		if(getDvarInt("mv_extramaps") == 1)
@@ -319,10 +361,12 @@ function MapvoteStart()
 			level.mapvote["map6"] = level.maps_data[mapschoosed[5]];
 		}
 
+		// TODO: It miss the code who handle the selection of a random gametype
+
 		foreach (player in level.players)
 		{
-			//if (!player util::is_bot())
-			//	player thread mv_PlayerUI();
+			if (!player util::is_bot())
+				player thread MapvotePlayerUI();
 		}
 		wait 0.2;
 		level thread MapvoteServerUI();
@@ -333,7 +377,7 @@ function MapvoteStart()
 
 function MapvoteServerUI()
 {
-	preCacheShader(level.mapvote["map1"].shader);
+	/*preCacheShader(level.mapvote["map1"].shader);
 	preCacheShader(level.mapvote["map2"].shader);
 	preCacheShader(level.mapvote["map3"].shader);
 
@@ -342,12 +386,12 @@ function MapvoteServerUI()
 		preCacheShader(level.mapvote["map4"].shader);
 		preCacheShader(level.mapvote["map5"].shader);
 		preCacheShader(level.mapvote["map6"].shader);
-	}
+	}*/
 
-	mv_arrowcolor = GetColor(getDvar("mv_arrowcolor"));
-	mv_votecolor = getDvar("mv_votecolor");
+	mv_arrowcolor = GetColor(GetDvarString("mv_arrowcolor"));
+	mv_votecolor = GetDvarString("mv_votecolor");
 
-	buttons = level hud:createServerFontString("objective", 2);
+	buttons = level hud::createServerFontString("objective", 2);
 	buttons setText("^7 ^3[{+speed_throw}]              ^7Press ^3[{+gostand}] ^7or ^3[{+activate}] ^7to select              ^3[{+attack}] ^7");
 	buttons.alpha = 0;
 	buttons.hideWhenInMenu = 1;
@@ -377,7 +421,7 @@ function MapvoteServerUI()
 	
 	if(getDvarInt("mv_extramaps") == 1)
 	{
-		buttons setPoint("CENTER", "CENTER", 0, 150);
+		buttons hud::setPoint("CENTER", "CENTER", 0, 150);
 		arrow_right = level DrawShader("ui_scrollbar_arrow_right", 200, 290 + 50, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
 		arrow_left = level DrawShader("ui_scrollbar_arrow_left", -200, 290 + 50, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
 		mapsUI[3] = spawnStruct();
@@ -421,7 +465,7 @@ function MapvoteServerUI()
 		mapsUI[1].textbg = level DrawShader("black", 0, -325, 194, 30, (1, 1, 1), 0.7, 4, "CENTER", "CENTER", 1);
 		mapsUI[2].textbg = level DrawShader("black", 220, -325, 194, 30, (1, 1, 1), 0.7, 4, "RIGHT", "CENTER", 1);
 
-		buttons setPoint("CENTER", "CENTER", 0, 100);
+		buttons hud::setPoint("CENTER", "CENTER", 0, 100);
         // TODO: Find equivalents icons to ui_scrollbar_arrow_right and ui_scrollbar_arrow_left from bo2 in bo3
 		arrow_right = level DrawShader("ui_arrow_right", 200, 290, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
 		arrow_left = level DrawShader("ui_arrow_left", -200, 290, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
@@ -454,16 +498,16 @@ function MapvoteServerUI()
 	wait 1;
 	level notify("mv_start_vote");
 
-	mv_sentence = getDvar("mv_sentence");
-	mv_socialname = getDvar("mv_socialname");
-	mv_sociallink = getDvar("mv_sociallink");
-	credits = level createServerFontString("objective", 1.2);
-	credits setPoint("BOTTOM_LEFT", "BOTTOM_LEFT");
+	mv_sentence = GetDvarString("mv_sentence");
+	mv_socialname = GetDvarString("mv_socialname");
+	mv_sociallink = GetDvarString("mv_sociallink");
+	credits = level hud::createServerFontString("objective", 1.2);
+	credits hud::setPoint("BOTTOM_LEFT", "BOTTOM_LEFT");
 	credits setText(mv_sentence + "\nDeveloped by @^5DoktorSAS ^7\n" + mv_socialname + ": " + mv_sociallink);
 
-	timer = level createServerFontString("objective", 2);
-	timer setPoint("CENTER", "BOTTOM", "CENTER", "CENTER");
-	timer setTimer(level.mapvote["time"]);
+	timer = level hud::createServerFontString("objective", 2);
+	timer hud::setPoint("CENTER", "BOTTOM", "CENTER", "CENTER");
+	//timer setTimer(level.mapvote["time"]);
 	wait level.mapvote["time"];
 	level notify("mv_destroy_hud");
 	// logPrint("mapvote//mv_ServerUI " + getTime()/1000 + "\n");
@@ -555,7 +599,7 @@ function VoteManager()
 	isInVote = 1;
 	while (isInVote)
 	{
-		notify_value = level waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "vote6", "mv_destroy_hud");
+		notify_value = level util::waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "vote6", "mv_destroy_hud");
 
 		if (notify_value == "mv_destroy_hud")
 		{
@@ -589,18 +633,33 @@ function VoteManager()
 		}
 	}
 
-	//winner = MapvoteGetMostVotedMap(votes);
-	//map = winner.map;
+	winner = MapvoteGetMostVotedMap(votes);
+	map = winner.map;
 
 	foreach(vote in votes) 
 	{
-		votes.votes affectElement("alpha", 0.5, 0);
+		vote.votes affectElement("alpha", 0.5, 0);
 	}
 
 	MapvoteSetRotation(map.exec_rotation, map.gametype);
 
 	wait 1.2;
 
+}
+
+function MapvoteGetMostVotedMap(votes)
+{
+	winner = spawnStruct();
+	winner = votes[0];
+	for (i = 1; i < votes.size; i++)
+	{
+		if (isDefined(votes[i]) && votes[i].value > winner.value)
+		{
+			winner = votes[i];
+		}
+	}
+
+	return winner;
 }
 
 function MapvoteSetRotation(mapid, gametype)
@@ -619,7 +678,7 @@ function MapvoteSetRotation(mapid, gametype)
 }
 
 
-function insert_map(key, displayname3, displayname6, image, exec_rotation)
+function insertMap(key, displayname3, displayname6, image, exec_rotation)
 {
     /*
         key          : it rappresent that map id/key to use on the dvar mp_maps
@@ -641,6 +700,8 @@ function insert_map(key, displayname3, displayname6, image, exec_rotation)
 	level.maps_data[key].exec_rotation = exec_rotation;
 	level.maps_data[key].image = image;
 }
+
+
 
 function BuildMapsData()
 {
@@ -664,7 +725,7 @@ function BuildMapsData()
     insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_loadscreen_crucible", "mp_crucible");
     insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_loadscreen_rise", "mp_rise");
     insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_loadscreen_skyjacked", "mp_skyjacked");
-    insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_loadscreen_", "");
+    // insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_loadscreen_", ""); ?
     insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_loadscreen_waterpark", "mp_waterpark");
 
     // Eclipse DLC
@@ -708,11 +769,11 @@ function CreateString(input, font, fontScale, align, relative, x, y, color, alph
 {
 	if (self != level)
 	{
-		hud = self hud::createFontString(font, fontScale);
+		hud = hud::createFontString(font, fontScale);
 	}
 	else
 	{
-		hud = level hud::createServerFontString(font, fontScale);
+		hud = hud::createServerFontString(font, fontScale);
 	}
 
 	if (!isDefined(isValue))
@@ -733,6 +794,30 @@ function CreateString(input, font, fontScale, align, relative, x, y, color, alph
 	hud.alpha = alpha;
 	hud.archived = 0;
 	hud.hideWhenInMenu = 0;
+	return hud;
+}
+function DrawShader(shader, x, y, width, height, color, alpha, sort, align, relative, isLevel)
+{
+	if (isDefined(isLevel))
+		hud = newhudelem();
+	else
+		hud = newclienthudelem(self);
+	hud.elemtype = "icon";
+	hud.color = color;
+	// TODO: Reset it to 1 once find more infos about loadscrean images not loading issue and why the shaders are not align with the boxes. 
+	hud.alpha = 0;
+	hud.sort = sort;
+	hud.children = [];
+	if (isDefined(align))
+		hud.align = align;
+	if (isDefined(relative))
+		hud.relative = relative;
+	hud hud::setparent(level.uiparent);
+	hud.x = x;
+	hud.y = y;
+	hud setshader(shader, width, height);
+	hud.hideWhenInMenu = 0;
+	hud.archived = 0;
 	return hud;
 }
 
