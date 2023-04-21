@@ -20,7 +20,7 @@
 
 #insert scripts\shared\shared.gsh;
 
-#precache( "material", "white" );
+#precache("material", "white");
 
 /*
 	Mod: Mapvote Menu
@@ -45,29 +45,33 @@
 
 #namespace mapvote;
 
-REGISTER_SYSTEM( "mapvote", &__init__, undefined )
+REGISTER_SYSTEM("mapvote", &__init__, undefined)
 
 function __init__()
 {
 	// this is now handled in code ( not lan )
-	// see s_nextScriptClientId 
+	// see s_nextScriptClientId
 	level.clientid = 0;
 
-    callback::on_start_gametype( &init );
-    callback::on_connect( &on_player_connect );
-    callback::on_spawned( &on_player_spawned );
-	//Note: Don't lock the game on the state but at least get called on endgame challenges::registerChallengesCallback( "gameEnd",&MapvoteStart );
+	callback::on_start_gametype(&init);
+	callback::on_connect(&on_player_connect);
+	callback::on_spawned(&on_player_spawned);
+	// Note: Don't lock the game on the state but at least get called on endgame challenges::registerChallengesCallback( "gameEnd",&MapvoteStart );
 }
 
 function init()
 {
-    //precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
-    //precacheStatusIcon("compassping_friendlyyelling_mp");
+	// precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
+	// precacheStatusIcon("compassping_friendlyyelling_mp");
 	MapvoteConfigurate();
 	// Note: Don't lock the game on the state but at least get called on endgame
-	//level.onEndGame_sub = level.onEndGame;
-	//level.onEndGame = &MapvoteStart;
-	level.endGameFunction = &MapvoteStart;
+	// level.onEndGame_sub = level.onEndGame;
+	// level.onEndGame = &MapvoteStart;
+	// Note: Don't get called at all
+	// level.endGameFunction = &MapvoteStart;
+	// level.onRoundEndGame_stub = level.onRoundEndGame;
+	// level.onRoundEndGame = &MapvoteStart;
+	level.startMapvote = &MapvoteStart;
 }
 
 function MapvoteConfigurate()
@@ -79,16 +83,16 @@ function MapvoteConfigurate()
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
-	//Nota: It is on end game and lock the game in the state but it display a fully white screen
-	//if(!isDefined(level.end_game_video))
+	// Nota: It is on end game and lock the game in the state but it display a fully white screen
+	// if(!isDefined(level.end_game_video))
 	//{
 	//	level.end_game_video = SpawnStruct();
 	//	level.end_game_video.duration = level.mapvote["time"];
-	//}
-	//else
+	// }
+	// else
 	//{
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
-	//}
+	// }
 	SetDvarIfNotInizialized("mv_maps", "mp_biodome mp_spire mp_sector mp_apartments mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_redwood mp_stronghold mp_nuketown_x mp_shrine mp_ruins mp_cryogen mp_rome mp_crucible mp_kung_fu mp_miniature mp_western mp_conduit mp_rise mp_arena mp_city mp_skyjacked mp_aerospace mp_waterpark mp_banzai mp_veiled_heyday mp_redwood_ice");
 
 	// PreCache maps images
@@ -111,40 +115,67 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_gametypes", "dm;dm.cfg tdm;tdm.cfg dm;dm.cfg tdm;tdm.cfg sd;sd.cfg sd;sd.cfg");
 	setDvarIfNotInizialized("mv_excludedmaps", "");
 
-	//Nota: It is on end game and lock the game in the state but it display a fully white screen
-	//level waittill("sfade");
-	//level thread MapvoteStart();
+	// Nota: It is on end game and lock the game in the state but it display a fully white screen
+	// level waittill("sfade");
+	// level thread MapvoteStart();
 }
 
 function on_player_connect()
 {
-	self.clientid = matchRecordNewPlayer( self );
-	if ( !isdefined( self.clientid ) || self.clientid == -1 )
+	self.clientid = matchRecordNewPlayer(self);
+	if (!isdefined(self.clientid) || self.clientid == -1)
 	{
 		self.clientid = level.clientid;
-		level.clientid++;	// Is this safe? What if a server runs for a long time and many people join/leave
+		level.clientid++; // Is this safe? What if a server runs for a long time and many people join/leave
 	}
 
-	/#
-	PrintLn( "client: " + self.name + " clientid: " + self.clientid);
-	#/
+	/ #PrintLn("client: " + self.name + " clientid: " + self.clientid);
+#/
 }
 
 function on_player_spawned() // Patch for blur effect persisting (TODO: This issue is a BO2 issue, i don't know if BO3 have the same bug)
 {
 	self endon("disconnect");
 	level endon("game_ended");
-	//level thread MapvoteStart();
+	// level thread MapvoteStart();
 	self setblur(0, 0);
+	self thread handlePlayerButtons();
+}
+
+function handlePlayerButtons()
+{
+	self endon("disconnect");
+	level endon("mv_destroy_hud");
+	while (true)
+	{
+		if (self AdsButtonPressed())
+		{
+			self notify("right");
+			wait 0.2;
+		}
+
+		if (self AttackButtonPressed())
+		{
+			self notify("left");
+			wait 0.2;
+		}
+
+		if (self UseButtonPressed() || self JumpButtonPressed() || self ReloadButtonPressed())
+		{
+			self notify("select");
+			wait 0.2;
+		}
+		wait 0.02;
+	}
 }
 
 // utils.gsc
 function SetDvarIfNotInizialized(dvar, value)
 {
-    if (!IsInizialized(dvar))
-    {
-        setDvar(dvar, value);
-    }
+	if (!IsInizialized(dvar))
+	{
+		setDvar(dvar, value);
+	}
 }
 
 function IsInizialized(dvar)
@@ -160,7 +191,7 @@ function MapvotePlayerUI()
 
 	scroll_color = getColor(getDvarString("mv_scrollcolor"));
 	bg_color = getColor(getDvarString("mv_backgroundcolor"));
-	//self FreezeControlsAllowLook(0);
+	// self FreezeControlsAllowLook(0);
 	boxes = [];
 	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -452, 205, 133, scroll_color, "white", 1, 0);
 	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -452, 205, 133, bg_color, "white", 1, 0);
@@ -169,7 +200,7 @@ function MapvotePlayerUI()
 	self thread ClientFixAngle();
 	level waittill("mv_start_animation");
 
-	if(getDvarInt("mv_extramaps") == 1)
+	if (getDvarInt("mv_extramaps") == 1)
 	{
 		dynamic_position = 100;
 		boxes[3] = self CreateRectangle("CENTER", "CENTER", -120, -452, 205, 133, bg_color, "white", 2, 0);
@@ -186,11 +217,11 @@ function MapvotePlayerUI()
 		boxes[1] affectElement("y", 1.2, -50);
 		boxes[2] affectElement("y", 1.2, -50);
 	}
-	
+
 	self thread DestroyBoxes(boxes);
 
 	/*
-		TODO: notifyonplayercommand do not exist so we need to find a workaround. 
+		TODO: notifyonplayercommand do not exist so we need to find a workaround.
 		self notifyonplayercommand("left", "+attack");
 		self notifyonplayercommand("right", "+speed_throw");
 		self notifyonplayercommand("left", "+moveright");
@@ -205,7 +236,7 @@ function MapvotePlayerUI()
 	boxes[0] affectElement("alpha", 0.2, 1);
 	boxes[1] affectElement("alpha", 0.2, 1);
 	boxes[2] affectElement("alpha", 0.2, 1);
-	if(boxes.size > 3)
+	if (boxes.size > 3)
 	{
 		boxes[3] affectElement("alpha", 0.2, 1);
 		boxes[4] affectElement("alpha", 0.2, 1);
@@ -262,13 +293,13 @@ function DestroyBoxes(boxes)
 		box affectElement("alpha", 0.5, 0);
 	}
 	wait 0.5;
-	foreach(box in boxes)
+	foreach (box in boxes)
 	{
 		box hud::destroyElem();
 	}
 }
 
-function ClientFixAngle() // TODO: Check if the bug happen also in BO3 
+function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 {
 	self endon("disconnect");
 	level endon("game_ended");
@@ -279,7 +310,6 @@ function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 	if (self getPlayerAngles() != angles)
 		self setPlayerAngles(angles);
 }
-
 
 // mv_server.gsc
 function MapvoteGetMapsThatCanBeVoted(mapslist)
@@ -304,14 +334,14 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 		index = randomIntRange(0, mapsIDs.size);
 		map = mapsIDs[index];
 		mapschoosed[i] = map;
-		logPrint("map;"+map+";index;"+index+"\n");
+		logPrint("map;" + map + ";index;" + index + "\n");
 		mapsIDs = ArrayRemoveElement(mapsIDs, map);
-		//arrayremovevalue(mapsIDs, map);
+		// arrayremovevalue(mapsIDs, map);
 	}
 
 	return mapschoosed;
 }
-//Note: is required for  [[level.onEndGame_sub]](winner); -> function MapvoteStart(winner)
+// Note: is required for  [[level.onEndGame_stub]](winner);  or [[level.onRoundEndGame_stub]](winner); -> function MapvoteStart(winner)
 function MapvoteStart()
 {
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
@@ -320,33 +350,38 @@ function MapvoteStart()
 	if (!isDefined(level.mapvote_started))
 	{
 		level.mapvote_started = 1;
-		//mapslist = [];
+		// mapslist = [];
 		maps_keys = [];
 		maps_keys = strTok(GetDvarString("mv_maps"), " ");
 		mapslist = MapvoteGetRandomMaps(maps_keys); // Remove blacklisted maps
 		times = 3;
-		if(getDvarInt("mv_extramaps") == 1)
+		if (getDvarInt("mv_extramaps") == 1)
 		{
-			times = 6;
+			times = 5;
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
+		gametypes = strTok(getDvarString("mv_gametypes"), " ");
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
 		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
 
-		level.mapvote["map1"].gametype = "dm";
-		level.mapvote["map2"].gametype = "dm";
-		level.mapvote["map3"].gametype = "dm";
-		level.mapvote["map4"].gametype = "dm";
-		level.mapvote["map5"].gametype = "dm";
-		level.mapvote["map6"].gametype = "dm";
+		level.mapvote["map1"].gametype = gametypes[randomIntRange(0, gametypes.size)];
+		level.mapvote["map2"].gametype = gametypes[randomIntRange(0, gametypes.size)];
+		level.mapvote["map3"].gametype = gametypes[randomIntRange(0, gametypes.size)];
 
-		if(getDvarInt("mv_extramaps") == 1)
+		level.mapvote["map1"].gametypeUI = "dm"; // gametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
+		level.mapvote["map2"].gametypeUI = gametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
+		level.mapvote["map3"].gametypeUI = gametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
+
+		if (getDvarInt("mv_extramaps") == 1)
 		{
 			level.mapvote["map4"] = level.maps_data[mapschoosed[3]];
 			level.mapvote["map5"] = level.maps_data[mapschoosed[4]];
-			level.mapvote["map6"] = level.maps_data[mapschoosed[5]];
+			level.mapvote["map4"].gametype = gametypes[randomIntRange(0, gametypes.size)];
+			level.mapvote["map5"].gametype = gametypes[randomIntRange(0, gametypes.size)];
+			level.mapvote["map4"].gametypeUI = gametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
+			level.mapvote["map5"].gametypeUI = gametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
 		}
 
 		// TODO: It miss the code who handle the selection of a random gametype
@@ -361,7 +396,8 @@ function MapvoteStart()
 
 		VoteManager();
 	}
-	//Note: Don't lock the game on the state but at least get called on endgame [[level.onEndGame_sub]](winner);
+	// Note: Don't get called at all [[level.onRoundEndGame]](winner);
+	// Note: Don't lock the game on the state but at least get called on endgame [[level.onEndGame_stub]](winner);
 }
 
 function MapvoteServerUI()
@@ -381,11 +417,11 @@ function MapvoteServerUI()
 	mapsUI[0].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[1].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[2].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[0].mapname.label = level.mapvote["map1"].mapname;
-	mapsUI[1].mapname.label = level.mapvote["map2"].mapname;
-	mapsUI[2].mapname.label = level.mapvote["map3"].mapname;
+	mapsUI[0].mapname.label = level.mapvote["map1"].gametypeUI;
+	mapsUI[1].mapname.label = level.mapvote["map2"].mapname + "" + level.mapvote["map2"].gametypeUI;
+	mapsUI[2].mapname.label = level.mapvote["map3"].mapname + "" + level.mapvote["map3"].gametypeUI;
 
-	if(getDvarInt("mv_extramaps") == 1)
+	if (getDvarInt("mv_extramaps") == 1)
 	{
 		buttons hud::setPoint("CENTER", "CENTER", 0, 150);
 		mapsUI[3] = spawnStruct();
@@ -394,8 +430,8 @@ function MapvoteServerUI()
 		mapsUI[3].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 		mapsUI[4].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
-		mapsUI[3].mapname.label = level.mapvote["map4"].mapname;
-		mapsUI[4].mapname.label = level.mapvote["map5"].mapname;
+		mapsUI[3].mapname.label = level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI;
+		mapsUI[4].mapname.label = level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI;
 	}
 	else
 	{
@@ -408,26 +444,26 @@ function MapvoteServerUI()
 
 	level notify("mv_start_animation");
 
-	for(i = 0; i < mapsUI.size; i++) 
+	for (i = 0; i < mapsUI.size; i++)
 	{
 		map = mapsUI[i];
 		dynamic_position = 0;
-		if(mapsUI.size > 3 && i < 3)
+		if (mapsUI.size > 3 && i < 3)
 		{
-			dynamic_position = -50;	
+			dynamic_position = -50;
 		}
-		else if(mapsUI.size > 3 && i > 2)
+		else if (mapsUI.size > 3 && i > 2)
 		{
 			dynamic_position = 100;
 		}
 		map.mapname.alpha = 0;
 		map.mapname affectElement("alpha", 1.6, 1);
 		map.mapname.y = -9 + dynamic_position;
-		if(isDefined(map.textbg))
+		if (isDefined(map.textbg))
 		{
 			map.textbg.y = 186 + dynamic_position;
 		}
-		//map.image affectElement("y", 1.2, 89 + dynamic_position);
+		// map.image affectElement("y", 1.2, 89 + dynamic_position);
 	}
 
 	wait 1;
@@ -437,26 +473,27 @@ function MapvoteServerUI()
 	mv_socialname = GetDvarString("mv_socialname");
 	mv_sociallink = GetDvarString("mv_sociallink");
 	credits = level hud::createServerFontString("objective", 1.2);
-	credits hud::setPoint("BOTTOM_LEFT", "BOTTOM_LEFT");
+	credits hud::setPoint("BOTTOM_LEFT", "BOTTOM_LEFT", 15, -70);
 	credits setText(mv_sentence + "\nDeveloped by @^5DoktorSAS ^7\n" + mv_socialname + ": " + mv_sociallink);
+	credits affectElement("alpha", 0.5, 1);
 
 	timer = level hud::createServerFontString("objective", 2);
-	timer hud::setPoint("CENTER", "BOTTOM", "CENTER", "CENTER");
-	//timer setTimer(level.mapvote["time"]);
+	timer hud::setPoint("TOP", "TOP", "CENTER", 30);
+	timer setTimer(level.mapvote["time"]);
 	wait level.mapvote["time"];
 	level notify("mv_destroy_hud");
 	// logPrint("mapvote//mv_ServerUI " + getTime()/1000 + "\n");
 
-	foreach(map in mapsUI) 
+	foreach (map in mapsUI)
 	{
 		map.mapname affectElement("alpha", 0.4, 0);
-		if(isDefined(map.textbg))
+		if (isDefined(map.textbg))
 		{
 			map.textbg affectElement("alpha", 0.4, 0);
 		}
-		//map.image affectElement("alpha", 0.4, 0);
+		// map.image affectElement("alpha", 0.4, 0);
 	}
-	
+
 	credits affectElement("alpha", 0.5, 0);
 	timer affectElement("alpha", 0.5, 0);
 
@@ -486,7 +523,7 @@ function VoteManager()
 	votes[2].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 290, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
 	votes[2].votes.label = "^" + getDvarInt("mv_votecolor");
 	votes[2].map = level.mapvote["map3"];
-	if(getDvarInt("mv_extramaps") == 1)
+	if (getDvarInt("mv_extramaps") == 1)
 	{
 		votes[3] = spawnStruct();
 		votes[4] = spawnStruct();
@@ -500,15 +537,15 @@ function VoteManager()
 		votes[4].map = level.mapvote["map5"];
 	}
 
-	for(i = 0; i < votes.size; i++) 
+	for (i = 0; i < votes.size; i++)
 	{
 		vote = votes[i];
 		dynamic_position = 0;
-		if(votes.size > 3 && i < 3)
+		if (votes.size > 3 && i < 3)
 		{
-			dynamic_position = -50;	
+			dynamic_position = -50;
 		}
-		else if(votes.size > 3 && i > 2)
+		else if (votes.size > 3 && i > 2)
 		{
 			dynamic_position = 100;
 		}
@@ -518,16 +555,15 @@ function VoteManager()
 		vote.votes affectElement("alpha", 1.6, 1);
 	}
 
-	
-
 	isInVote = 1;
 	index = 0;
 	while (isInVote)
 	{
-		notify_value = level util::waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "vote6", "mv_destroy_hud");
+		notify_value = level util::waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "mv_destroy_hud");
 
 		if (notify_value == "mv_destroy_hud")
 		{
+			isInVote = 0; // Note: Required, seems that the break don't make the while quit.
 			break;
 		}
 		else
@@ -549,28 +585,22 @@ function VoteManager()
 			case "vote5":
 				index = 4;
 				break;
-			case "vote6":
-				index = 5;
-				break;
 			}
 			votes[index].value++;
 			votes[index].votes setValue(votes[index].value);
 		}
 	}
 
-
-	winner = MapvoteGetMostVotedMap(votes);
-	map = winner.map;
-
-	foreach(vote in votes) 
+	foreach (vote in votes)
 	{
 		vote.votes affectElement("alpha", 0.5, 0);
 	}
 
+	winner = MapvoteGetMostVotedMap(votes);
+	map = winner.map;
 	MapvoteSetRotation(map.exec_rotation, map.gametype);
 
 	wait 1.2;
-
 }
 
 function MapvoteGetMostVotedMap(votes)
@@ -603,18 +633,17 @@ function MapvoteSetRotation(mapid, gametype)
 	level notify("mv_ended");
 }
 
-
 function insertMap(key, displayname3, displayname6, image, exec_rotation)
 {
-    /*
-        key          : it rappresent that map id/key to use on the dvar mp_maps
-        displayname3 : displayname3 its the mapname used for the 3 maps mapvote version
-        displayname6 : displayname6 its the mapname used for the 6 maps mapvote version (TODO: Check hud limites, we don't know if can support 6 maps)
-        image        : is the image shader to use for the map
-        exec_rotation: it rappresent the value of sv_maprotationcurrent before map rotation get invoked
-    */
+	/*
+		key          : it rappresent that map id/key to use on the dvar mp_maps
+		displayname3 : displayname3 its the mapname used for the 3 maps mapvote version
+		displayname6 : displayname6 its the mapname used for the 6 maps mapvote version (TODO: Check hud limites, we don't know if can support 6 maps)
+		image        : is the image shader to use for the map
+		exec_rotation: it rappresent the value of sv_maprotationcurrent before map rotation get invoked
+	*/
 	level.maps_data[key] = SpawnStruct();
-	if(getDvarInt("mv_extramaps") == 1)
+	if (getDvarInt("mv_extramaps") == 1)
 	{
 		level.maps_data[key].mapname = displayname6;
 	}
@@ -622,61 +651,60 @@ function insertMap(key, displayname3, displayname6, image, exec_rotation)
 	{
 		level.maps_data[key].mapname = displayname3;
 	}
-	
+
 	level.maps_data[key].exec_rotation = exec_rotation;
 	level.maps_data[key].image = image;
 }
 
 function BuildMapsData()
 {
-    level.maps_data = [];
-    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_preview_biodome", "mp_biodome"); 
-    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_preview_spire", "mp_spire");
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_preview_sector", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_preview_apartments", "mp_apartments");
-    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_preview_chinatown", "");
-    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_preview_veiled", "mp_veiled");
-    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_preview_havoc", "mp_havoc");
-    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_preview_ethiopia", "");
-    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_preview_infection", "mp_infection");
-    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_preview_metro", "mp_metro");
-    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_preview_redwood", "mp_redwood");
-    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_preview_stronghold", "mp_stronghold");
-    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_preview_nuketown_x", "mp_nuketown_x");
+	level.maps_data = [];
+	insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_preview_biodome", "mp_biodome");
+	insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_preview_spire", "mp_spire");
+	insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_preview_sector", "mp_sector");
+	insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_preview_apartments", "mp_apartments");
+	insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_preview_chinatown", "");
+	insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_preview_veiled", "mp_veiled");
+	insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_preview_havoc", "mp_havoc");
+	insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_preview_ethiopia", "");
+	insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_preview_infection", "mp_infection");
+	insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_preview_metro", "mp_metro");
+	insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_preview_redwood", "mp_redwood");
+	insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_preview_stronghold", "mp_stronghold");
+	insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_preview_nuketown_x", "mp_nuketown_x");
 
+	// Awakening DLC
+	insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_preview_crucible", "mp_crucible");
+	insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_preview_rise", "mp_rise");
+	insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_preview_skyjacked", "mp_skyjacked");
+	// insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_preview_", ""); ?
+	insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_preview_waterpark", "mp_waterpark");
 
-    // Awakening DLC
-    insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_preview_crucible", "mp_crucible");
-    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_preview_rise", "mp_rise");
-    insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_preview_skyjacked", "mp_skyjacked");
-    // insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_preview_", ""); ?
-    insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_preview_waterpark", "mp_waterpark");
+	// Eclipse DLC
+	insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_preview_kung_fu", "mp_kung_fu");
+	insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_preview_conduit", "mp_conduit");
+	insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_preview_aerospace", "mp_aerospace");
+	insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_preview_banzai", "mp_banzai");
 
-    // Eclipse DLC
-    insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_preview_kung_fu", "mp_kung_fu");
-    insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_preview_conduit", "mp_conduit");
-    insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_preview_aerospace", "mp_aerospace");
-    insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_preview_banzai", "mp_banzai");
+	// Descent DLC
+	insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_preview_shrine", "mp_shrine");
+	insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_preview_cryogen", "mp_cryogen");
+	insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_preview_rome", "mp_rome");
+	insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_preview_arena", "mp_arena");
 
-    // Descent DLC
-    insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_preview_shrine", "mp_shrine");
-    insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_preview_cryogen", "mp_cryogen");
-    insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_preview_rome", "mp_rome");
-    insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_preview_arena", "mp_arena");
+	// Salvation DLC
+	insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_preview_ruins", "mp_ruins");
+	insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_preview_miniature", "mp_miniature");
+	insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_preview_western", "mp_western");
+	insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_preview_city", "mp_city");
 
-    // Salvation DLC
-    insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_preview_ruins", "mp_ruins");
-    insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_preview_miniature", "mp_miniature");
-    insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_preview_western", "mp_western");
-    insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_preview_city", "mp_city");
+	// Bonus Maps
+	insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_preview_veiled_heyday", "mp_veiled_heyday");
+	insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_preview_redwood_ice", "mp_redwood_ice");
 
-    // Bonus Maps
-    insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_preview_veiled_heyday", "mp_veiled_heyday"); 
-    insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_preview_redwood_ice", "mp_redwood_ice"); 
-
-    /*
+	/*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
-		How to do it? 
+		How to do it?
 		1. Copy insertMap("", &"",  &" - ", "", ""); and paste it under level.maps_dataata = [];
 		2. Compile the empty spaces, the arguments in ordare are:
 			1) Map custom id: Is an id that you can use in your mv_maps dvar to identify this specific map
@@ -708,7 +736,7 @@ function CreateString(input, font, fontScale, align, relative, x, y, color, alph
 	{
 		hud setValue(int(input));
 	}
-		
+
 	hud hud::setPoint(align, relative, x, y);
 	hud.color = color;
 	hud.alpha = alpha;
@@ -728,7 +756,7 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 		hud = newclienthudelem(self);
 	hud.elemtype = "icon";
 	hud.color = color;
-	// TODO: Reset it to 1 once find more infos about loadscrean images not loading issue and why the shaders are not align with the boxes. 
+	// TODO: Reset it to 1 once find more infos about loadscrean images not loading issue and why the shaders are not align with the boxes.
 	hud.alpha = 1;
 	hud.sort = sort;
 	hud.children = [];
@@ -747,25 +775,25 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 
 function CreateRectangle(align, relative, x, y, width, height, color, shader, sort, alpha)
 {
-    uiElement = newClientHudElem( self );
-    uiElement.elemType = "bar";
-    uiElement.width = width;
-    uiElement.height = height;
-    uiElement.align = align;
+	uiElement = newClientHudElem(self);
+	uiElement.elemType = "bar";
+	uiElement.width = width;
+	uiElement.height = height;
+	uiElement.align = align;
 	uiElement.relative = relative;
-    uiElement.xOffset = 0;
-    uiElement.yOffset = 0;
-    uiElement.hidewheninmenu = true;
-    uiElement.children = [];
-    uiElement.sort = sort;
-    uiElement.color = color;
-    uiElement.alpha = alpha;
-    uiElement hud::setParent( level.uiParent );
-    uiElement setShader( shader, width , height );
-    uiElement.hidden = false;
-    uiElement.archived = false;
-    uiElement hud::setPoint(align,relative,x,y);
-    return uiElement;
+	uiElement.xOffset = 0;
+	uiElement.yOffset = 0;
+	uiElement.hidewheninmenu = true;
+	uiElement.children = [];
+	uiElement.sort = sort;
+	uiElement.color = color;
+	uiElement.alpha = alpha;
+	uiElement hud::setParent(level.uiParent);
+	uiElement setShader(shader, width, height);
+	uiElement.hidden = false;
+	uiElement.archived = false;
+	uiElement hud::setPoint(align, relative, x, y);
+	return uiElement;
 }
 
 function ValidateColor(value)
@@ -773,7 +801,7 @@ function ValidateColor(value)
 	return value == "0" || value == "1" || value == "2" || value == "3" || value == "4" || value == "5" || value == "6" || value == "7";
 }
 
-function  GetColor(color)
+function GetColor(color)
 {
 	switch (tolower(color))
 	{
@@ -820,28 +848,26 @@ function  GetColor(color)
 
 	case "white":
 		return (1, 1, 1);
-
 	}
 }
 
 function affectElement(type, time, value)
 {
-    if(type == "x" || type == "y")
-        self moveOverTime(time);
-    else
-        self fadeOverTime(time);
-    if(type == "x")
-        self.x = value;
-    if(type == "y")
-        self.y = value;
-    if(type == "alpha")
-        self.alpha = value;
-    if(type == "color")
-        self.color = value;
+	if (type == "x" || type == "y")
+		self moveOverTime(time);
+	else
+		self fadeOverTime(time);
+	if (type == "x")
+		self.x = value;
+	if (type == "y")
+		self.y = value;
+	if (type == "alpha")
+		self.alpha = value;
+	if (type == "color")
+		self.color = value;
 }
 
-
-function GametypeToName(gametype) 
+function GametypeToName(gametype)
 {
 	switch (tolower(gametype))
 	{
@@ -850,17 +876,17 @@ function GametypeToName(gametype)
 
 	case "tdm":
 		return "Team Deathmatch";
-        
-    case "ball":
+
+	case "ball":
 		return "Uplink";
 
 	case "sd":
 		return "Search & Destroy";
 
-    case "sr":
+	case "sr":
 		return "Search & Rescue";
 
-    case "dom":
+	case "dom":
 		return "Domination";
 
 	case "dem":
@@ -877,7 +903,7 @@ function GametypeToName(gametype)
 
 	case "gun":
 		return "Gun Game";
-    
+
 	case "sas":
 		return "Sticks & Stones";
 
@@ -893,15 +919,14 @@ function GametypeToName(gametype)
 	case "clean":
 		return "Fracture";
 
-    case "prop":
+	case "prop":
 		return "Prop Hunt";
 
-    case "infect":
+	case "infect":
 		return "Infected";
 
 	case "sniperonly":
 		return "Snipers Only";
-
 	}
 	return "invalid";
 }
@@ -909,9 +934,9 @@ function GametypeToName(gametype)
 function ArrayRemoveElement(array, todelete)
 {
 	newarray = [];
-	foreach(element in array) 
+	foreach (element in array)
 	{
-		if(element != todelete)
+		if (element != todelete)
 		{
 			newarray[newarray.size] = element;
 		}
