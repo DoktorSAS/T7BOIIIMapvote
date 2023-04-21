@@ -21,34 +21,6 @@
 #insert scripts\shared\shared.gsh;
 
 #precache( "material", "white" );
-#precache( "material", "ui_arrow_left" );
-#precache( "material", "ui_arrow_right" );
-
-// Defaults 
-#precache( "material", "img_t7_menu_mp_loadscreen_biodome" );
-#precache( "material", "img_t7_menu_mp_loadscreen_spire" );
-#precache( "material", "img_t7_menu_mp_loadscreen_sector" );
-#precache( "material", "img_t7_menu_mp_loadscreen_apartments" );
-#precache( "material", "img_t7_menu_mp_loadscreen_chinatown" );
-#precache( "material", "img_t7_menu_mp_loadscreen_veiled" );
-#precache( "material", "img_t7_menu_mp_loadscreen_havoc" );
-#precache( "material", "img_t7_menu_mp_loadscreen_ethiopia" );
-#precache( "material", "img_t7_menu_mp_loadscreen_infection" );
-#precache( "material", "img_t7_menu_mp_loadscreen_metro" );
-#precache( "material", "img_t7_menu_mp_loadscreen_redwood" );
-#precache( "material", "img_t7_menu_mp_loadscreen_stronghold" );
-#precache( "material", "img_t7_menu_mp_loadscreen_nuketown_x" );
-// Awakening DLC
-#precache( "material", "img_t7_menu_mp_loadscreen_crucible" );
-#precache( "material", "img_t7_menu_mp_loadscreen_rise" );
-#precache( "material", "img_t7_menu_mp_loadscreen_skyjacked" );
-#precache( "material", "img_t7_menu_mp_loadscreen_waterpark" );
-
-// Eclipse DLC
-#precache( "material", "img_t7_menu_mp_loadscreen_kung_fu" );
-#precache( "material", "img_t7_menu_mp_loadscreen_conduit" );
-#precache( "material", "img_t7_menu_mp_loadscreen_aerospace" );
-#precache( "material", "img_t7_menu_mp_loadscreen_banzai" );
 
 /*
 	Mod: Mapvote Menu
@@ -71,8 +43,6 @@
 	TODO: List of supported features
 */
 
-
-
 #namespace mapvote;
 
 REGISTER_SYSTEM( "mapvote", &__init__, undefined )
@@ -86,13 +56,18 @@ function __init__()
     callback::on_start_gametype( &init );
     callback::on_connect( &on_player_connect );
     callback::on_spawned( &on_player_spawned );
+	//Note: Don't lock the game on the state but at least get called on endgame challenges::registerChallengesCallback( "gameEnd",&MapvoteStart );
 }
 
 function init()
 {
     //precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
     //precacheStatusIcon("compassping_friendlyyelling_mp");
-    MapvoteConfigurate();
+	MapvoteConfigurate();
+	// Note: Don't lock the game on the state but at least get called on endgame
+	//level.onEndGame_sub = level.onEndGame;
+	//level.onEndGame = &MapvoteStart;
+	level.endGameFunction = &MapvoteStart;
 }
 
 function MapvoteConfigurate()
@@ -104,16 +79,21 @@ function MapvoteConfigurate()
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
+	//Nota: It is on end game and lock the game in the state but it display a fully white screen
+	//if(!isDefined(level.end_game_video))
+	//{
+	//	level.end_game_video = SpawnStruct();
+	//	level.end_game_video.duration = level.mapvote["time"];
+	//}
+	//else
+	//{
+	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
+	//}
 	SetDvarIfNotInizialized("mv_maps", "mp_biodome mp_spire mp_sector mp_apartments mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_redwood mp_stronghold mp_nuketown_x mp_shrine mp_ruins mp_cryogen mp_rome mp_crucible mp_kung_fu mp_miniature mp_western mp_conduit mp_rise mp_arena mp_city mp_skyjacked mp_aerospace mp_waterpark mp_banzai mp_veiled_heyday mp_redwood_ice");
 
 	// PreCache maps images
 	maps_data = [];
 	maps_data = BuildMapsData();
-
-	foreach (map in maps_data)
-	{
-		//precacheshader(map.image);
-	}
 
 	// Setting default values if needed
 	SetDvarIfNotInizialized("mv_credits", 1);
@@ -130,6 +110,10 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_backgroundcolor", "grey");
 	SetDvarIfNotInizialized("mv_gametypes", "dm;dm.cfg tdm;tdm.cfg dm;dm.cfg tdm;tdm.cfg sd;sd.cfg sd;sd.cfg");
 	setDvarIfNotInizialized("mv_excludedmaps", "");
+
+	//Nota: It is on end game and lock the game in the state but it display a fully white screen
+	//level waittill("sfade");
+	//level thread MapvoteStart();
 }
 
 function on_player_connect()
@@ -150,7 +134,7 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 {
 	self endon("disconnect");
 	level endon("game_ended");
-	level thread MapvoteStart();
+	//level thread MapvoteStart();
 	self setblur(0, 0);
 }
 
@@ -174,23 +158,24 @@ function MapvotePlayerUI()
 {
 	self setblur(getDvarFloat("mv_blur"), 1.5);
 
-	scroll_color = getColor(GetDvarString("mv_scrollcolor"));
-	bg_color = getColor(GetDvarString("mv_backgroundcolor"));
-	self FreezeControlsAllowLook(0);
+	scroll_color = getColor(getDvarString("mv_scrollcolor"));
+	bg_color = getColor(getDvarString("mv_backgroundcolor"));
+	//self FreezeControlsAllowLook(0);
 	boxes = [];
-	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, scroll_color, "white", 2, 0);
-	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "white", 2, 0);
-	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "white", 2, 0);
+	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -452, 205, 133, scroll_color, "white", 1, 0);
+	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -452, 205, 133, bg_color, "white", 1, 0);
+	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -452, 205, 133, bg_color, "white", 1, 0);
+
+	self thread ClientFixAngle();
+	level waittill("mv_start_animation");
 
 	if(getDvarInt("mv_extramaps") == 1)
 	{
 		dynamic_position = 100;
-		boxes[3] = self CreateRectangle("CENTER", "CENTER", -220, -50, 205, 131, bg_color, "white", 2, 0);
-		boxes[4] = self CreateRectangle("CENTER", "CENTER", 0, -50, 205, 131, bg_color, "white", 2, 0);
-		boxes[5] = self CreateRectangle("CENTER", "CENTER", 220, -50, 205, 131, bg_color, "white", 2, 0);
+		boxes[3] = self CreateRectangle("CENTER", "CENTER", -120, -452, 205, 133, bg_color, "white", 2, 0);
+		boxes[4] = self CreateRectangle("CENTER", "CENTER", 120, -452, 205, 133, bg_color, "white", 2, 0);
 		boxes[3] affectElement("y", 1.2, -50 + dynamic_position);
 		boxes[4] affectElement("y", 1.2, -50 + dynamic_position);
-		boxes[5] affectElement("y", 1.2, -50 + dynamic_position);
 		boxes[0] affectElement("y", 1.2, -100);
 		boxes[1] affectElement("y", 1.2, -100);
 		boxes[2] affectElement("y", 1.2, -100);
@@ -202,9 +187,7 @@ function MapvotePlayerUI()
 		boxes[2] affectElement("y", 1.2, -50);
 	}
 	
-
-	self thread ClientFixAngle();
-	self thread destroyBoxes(boxes);
+	self thread DestroyBoxes(boxes);
 
 	/*
 		TODO: notifyonplayercommand do not exist so we need to find a workaround. 
@@ -226,11 +209,10 @@ function MapvotePlayerUI()
 	{
 		boxes[3] affectElement("alpha", 0.2, 1);
 		boxes[4] affectElement("alpha", 0.2, 1);
-		boxes[5] affectElement("alpha", 0.2, 1);
 	}
 	index = 0;
 	isVoting = 1;
-	while (level.__mapvote["time"] > 0 && isVoting)
+	while (level.mapvote["time"] > 0 && isVoting)
 	{
 		command = self util::waittill_any_return("left", "right", "select");
 		if (command == "right")
@@ -274,7 +256,6 @@ function MapvotePlayerUI()
 
 function DestroyBoxes(boxes)
 {
-	level endon("game_ended");
 	level waittill("mv_destroy_hud");
 	foreach (box in boxes)
 	{
@@ -301,7 +282,6 @@ function ClientFixAngle() // TODO: Check if the bug happen also in BO3
 
 
 // mv_server.gsc
-
 function MapvoteGetMapsThatCanBeVoted(mapslist)
 {
 	if (GetDvarString("mv_excludedmaps") != "")
@@ -331,7 +311,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 
 	return mapschoosed;
 }
-
+//Note: is required for  [[level.onEndGame_sub]](winner); -> function MapvoteStart(winner)
 function MapvoteStart()
 {
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
@@ -354,6 +334,14 @@ function MapvoteStart()
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
 		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
+
+		level.mapvote["map1"].gametype = "dm";
+		level.mapvote["map2"].gametype = "dm";
+		level.mapvote["map3"].gametype = "dm";
+		level.mapvote["map4"].gametype = "dm";
+		level.mapvote["map5"].gametype = "dm";
+		level.mapvote["map6"].gametype = "dm";
+
 		if(getDvarInt("mv_extramaps") == 1)
 		{
 			level.mapvote["map4"] = level.maps_data[mapschoosed[3]];
@@ -373,103 +361,52 @@ function MapvoteStart()
 
 		VoteManager();
 	}
+	//Note: Don't lock the game on the state but at least get called on endgame [[level.onEndGame_sub]](winner);
 }
 
 function MapvoteServerUI()
 {
-	/*preCacheShader(level.mapvote["map1"].shader);
-	preCacheShader(level.mapvote["map2"].shader);
-	preCacheShader(level.mapvote["map3"].shader);
-
-	if(isDefined(level.mapvote["map4"]))
-	{
-		preCacheShader(level.mapvote["map4"].shader);
-		preCacheShader(level.mapvote["map5"].shader);
-		preCacheShader(level.mapvote["map6"].shader);
-	}*/
-
-	mv_arrowcolor = GetColor(GetDvarString("mv_arrowcolor"));
-	mv_votecolor = GetDvarString("mv_votecolor");
+	mv_arrowcolor = GetColor(getDvarString("mv_arrowcolor"));
+	mv_votecolor = getDvarString("mv_votecolor");
 
 	buttons = level hud::createServerFontString("objective", 2);
-	buttons setText("^7 ^3[{+speed_throw}]              ^7Press ^3[{+gostand}] ^7or ^3[{+activate}] ^7to select              ^3[{+attack}] ^7");
-	buttons.alpha = 0;
-	buttons.hideWhenInMenu = 1;
-	arrow_left = undefined;
-	arrow_right = undefined;
+	buttons setText("^3[{+speed_throw}]              ^7Press ^3[{+gostand}] ^7or ^3[{+activate}] ^7to select              ^3[{+attack}]");
+	buttons.hideWhenInMenu = 0;
 
 	mapsUI = [];
 	mapsUI[0] = spawnStruct();
 	mapsUI[1] = spawnStruct();
 	mapsUI[2] = spawnStruct();
 
-	// map name
-	mapsUI[0].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", -220, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", 0, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[2].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", 220, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[0].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[1].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[2].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[0].mapname.label = level.mapvote["map1"].mapname;
 	mapsUI[1].mapname.label = level.mapvote["map2"].mapname;
 	mapsUI[2].mapname.label = level.mapvote["map3"].mapname;
 
-	// map preview
-	mapsUI[0].image = level DrawShader(level.mapvote["map1"].image, -220, -310, 200, 117, (1, 1, 1), 1, 1, "LEFT", "CENTER", 1);
-	mapsUI[0].image fadeovertime(0.5);
-	mapsUI[1].image = level DrawShader(level.mapvote["map2"].image, 0, -310, 200, 117, (1, 1, 1), 1, 1, "CENTER", "CENTER", 1);
-	mapsUI[1].image fadeovertime(0.5);
-	mapsUI[2].image = level DrawShader(level.mapvote["map3"].image, 220, -310, 200, 117, (1, 1, 1), 1, 1, "RIGHT", "CENTER", 1);
-	mapsUI[2].image fadeovertime(0.5);
-	
 	if(getDvarInt("mv_extramaps") == 1)
 	{
 		buttons hud::setPoint("CENTER", "CENTER", 0, 150);
-		arrow_right = level DrawShader("ui_scrollbar_arrow_right", 200, 290 + 50, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
-		arrow_left = level DrawShader("ui_scrollbar_arrow_left", -200, 290 + 50, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
 		mapsUI[3] = spawnStruct();
 		mapsUI[4] = spawnStruct();
-		mapsUI[5] = spawnStruct();
-		
-		// map name
-		mapsUI[3].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", -220, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[4].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", 0, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[5].mapname = level CreateString(&"", "objective", 1.5, "CENTER", "CENTER", 220, -14, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+
+		mapsUI[3].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[4].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
 		mapsUI[3].mapname.label = level.mapvote["map4"].mapname;
 		mapsUI[4].mapname.label = level.mapvote["map5"].mapname;
-		mapsUI[5].mapname.label = level.mapvote["map6"].mapname;
-
-		// map preview
-		mapsUI[3].image = level DrawShader(level.mapvote["map4"].image, -220, -310, 200, 117, (1, 1, 1), 1, 1, "LEFT", "CENTER", 1);
-		mapsUI[3].image fadeovertime(0.5);
-		mapsUI[4].image = level DrawShader(level.mapvote["map5"].image, 0, -310, 200, 117, (1, 1, 1), 1, 1, "CENTER", "CENTER", 1);
-		mapsUI[4].image fadeovertime(0.5);
-		mapsUI[5].image = level DrawShader(level.mapvote["map6"].image, 220, -310, 200, 117, (1, 1, 1), 1, 1, "RIGHT", "CENTER", 1);
-		mapsUI[5].image fadeovertime(0.5);
-
-		level.mapvote["map1"].uistring = mapsUI[0].mapname;
-		level.mapvote["map2"].uistring = mapsUI[1].mapname;
-		level.mapvote["map3"].uistring = mapsUI[2].mapname;
-		level.mapvote["map4"].uistring = mapsUI[3].mapname;
-		level.mapvote["map5"].uistring = mapsUI[4].mapname;
-		level.mapvote["map6"].uistring = mapsUI[5].mapname;
-
-
-		// map name background - NOT WORKING BECAUSE OF HUD LIMITS
-		//mapsUI[3].textbg = level DrawShader("black", -220, -325, 194, 30, (1, 1, 1), 0.7, 4, "LEFT", "CENTER", 1);
-		//mapsUI[4].textbg = level DrawShader("black", 0, -325, 194, 30, (1, 1, 1), 0.7, 4, "CENTER", "CENTER", 1);
-		//mapsUI[5].textbg = level DrawShader("black", 220, -325, 194, 30, (1, 1, 1), 0.7, 4, "RIGHT", "CENTER", 1);
 	}
 	else
 	{
-		// map name background
-		mapsUI[0].textbg = level DrawShader("black", -220, -325, 194, 30, (1, 1, 1), 0.7, 4, "LEFT", "CENTER", 1);
-		mapsUI[1].textbg = level DrawShader("black", 0, -325, 194, 30, (1, 1, 1), 0.7, 4, "CENTER", "CENTER", 1);
-		mapsUI[2].textbg = level DrawShader("black", 220, -325, 194, 30, (1, 1, 1), 0.7, 4, "RIGHT", "CENTER", 1);
-
 		buttons hud::setPoint("CENTER", "CENTER", 0, 100);
-        // TODO: Find equivalents icons to ui_scrollbar_arrow_right and ui_scrollbar_arrow_left from bo2 in bo3
-		arrow_right = level DrawShader("ui_arrow_right", 200, 290, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
-		arrow_left = level DrawShader("ui_arrow_left", -200, 290, 25, 25, mv_arrowcolor, 100, 2, "CENTER", "CENTER", 1);
+
+		mapsUI[0].textbg = level DrawShader("black", -220, 186, 200, 32, (1, 1, 1), 1, 3, "LEFT", "CENTER", 1);
+		mapsUI[1].textbg = level DrawShader("black", 0, 186, 200, 32, (1, 1, 1), 1, 3, "CENTER", "CENTER", 1);
+		mapsUI[2].textbg = level DrawShader("black", 220, 186, 200, 32, (1, 1, 1), 1, 3, "RIGHT", "CENTER", 1);
 	}
+
+	level notify("mv_start_animation");
 
 	for(i = 0; i < mapsUI.size; i++) 
 	{
@@ -485,15 +422,13 @@ function MapvoteServerUI()
 		}
 		map.mapname.alpha = 0;
 		map.mapname affectElement("alpha", 1.6, 1);
-		map.mapname.y = -14 + dynamic_position;
+		map.mapname.y = -9 + dynamic_position;
 		if(isDefined(map.textbg))
 		{
-			map.textbg affectElement("y", 1.2, 176 + dynamic_position);
+			map.textbg.y = 186 + dynamic_position;
 		}
-		map.image affectElement("y", 1.2, 89 + dynamic_position);
+		//map.image affectElement("y", 1.2, 89 + dynamic_position);
 	}
-	
-	buttons affectElement("alpha", 1.5, 0.8);
 
 	wait 1;
 	level notify("mv_start_vote");
@@ -519,15 +454,13 @@ function MapvoteServerUI()
 		{
 			map.textbg affectElement("alpha", 0.4, 0);
 		}
-		map.image affectElement("alpha", 0.4, 0);
+		//map.image affectElement("alpha", 0.4, 0);
 	}
 	
 	credits affectElement("alpha", 0.5, 0);
 	timer affectElement("alpha", 0.5, 0);
 
 	buttons affectElement("alpha", 0.4, 0);
-	arrow_right affectElement("alpha", 0.4, 0);
-	arrow_left affectElement("alpha", 0.4, 0);
 
 	foreach (player in level.players)
 	{
@@ -539,64 +472,56 @@ function MapvoteServerUI()
 function VoteManager()
 {
 	votes = [];
-	votes[0] = SpawnStruct();
-	votes[1] = SpawnStruct();
-	votes[2] = SpawnStruct();
+	votes[0] = spawnStruct();
+	votes[1] = spawnStruct();
+	votes[2] = spawnStruct();
+	votes[0].votes = level CreateString(0, "objective", 1.5, "LEFT", "CENTER", -150, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+	votes[0].votes.label = "^" + getDvarInt("mv_votecolor");
+	votes[0].map = level.mapvote["map1"];
+
+	votes[1].votes = level CreateString(0, "objective", 1.5, "CENTER", "CENTER", 75, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+	votes[1].votes.label = "^" + getDvarInt("mv_votecolor");
+	votes[1].map = level.mapvote["map2"];
+
+	votes[2].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 290, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+	votes[2].votes.label = "^" + getDvarInt("mv_votecolor");
+	votes[2].map = level.mapvote["map3"];
 	if(getDvarInt("mv_extramaps") == 1)
 	{
-		votes[3] = SpawnStruct();
-		votes[4] = SpawnStruct();
-		votes[5] = SpawnStruct();
-
-		votes[0].votes = level.mapvote["map1"].uistring;
-		votes[0].map = level.mapvote["map1"];
-
-		votes[1].votes = level.mapvote["map2"].uistring;
-		votes[1].map = level.mapvote["map2"];
-
-		votes[2].votes = level.mapvote["map3"].uistring;
-		votes[2].map = level.mapvote["map3"];
-
-		votes[3].votes = level.mapvote["map4"].uistring;
+		votes[3] = spawnStruct();
+		votes[4] = spawnStruct();
+		votes[5] = spawnStruct();
+		votes[3].votes = level CreateString(0, "objective", 1.5, "LEFT", "CENTER", -50, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+		votes[3].votes.label = "^" + getDvarInt("mv_votecolor");
 		votes[3].map = level.mapvote["map4"];
 
-		votes[4].votes = level.mapvote["map5"].uistring;
+		votes[4].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 190, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+		votes[4].votes.label = "^" + getDvarInt("mv_votecolor");
 		votes[4].map = level.mapvote["map5"];
-
-		votes[5].votes = level.mapvote["map6"].uistring;
-		votes[5].map = level.mapvote["map6"];
-
-		for(i = 0; i < votes.size; i++) 
-		{
-			vote = votes[i];
-			vote.value = 0;
-			vote.votes setValue(0);
-		}
 	}
-	else
+
+	for(i = 0; i < votes.size; i++) 
 	{
-		votes[0].votes = level CreateString(0, "objective", 1.5, "LEFT", "CENTER", -150, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-		votes[0].votes.label = "^" + getDvarInt("mv_votecolor");
-		votes[0].map = level.mapvote["map1"];
-
-		votes[1].votes = level CreateString(0, "objective", 1.5, "CENTER", "CENTER", 75, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-		votes[1].votes.label = "^" + getDvarInt("mv_votecolor");
-		votes[1].map = level.mapvote["map2"];
-
-		votes[2].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 290, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-		votes[2].votes.label = "^" + getDvarInt("mv_votecolor");
-		votes[2].map = level.mapvote["map3"];
-
-		for(i = 0; i < votes.size; i++) 
+		vote = votes[i];
+		dynamic_position = 0;
+		if(votes.size > 3 && i < 3)
 		{
-			vote = votes[i];
-			vote.value = 0;
-			vote.votes setValue(0);
-			vote.votes affectElement("y", 1.2, -14);
+			dynamic_position = -50;	
 		}
+		else if(votes.size > 3 && i > 2)
+		{
+			dynamic_position = 100;
+		}
+		vote.value = 0;
+		vote.votes.alpha = 0;
+		vote.votes.y = 1 + dynamic_position;
+		vote.votes affectElement("alpha", 1.6, 1);
 	}
+
+	
 
 	isInVote = 1;
+	index = 0;
 	while (isInVote)
 	{
 		notify_value = level util::waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "vote6", "mv_destroy_hud");
@@ -632,6 +557,7 @@ function VoteManager()
 			votes[index].votes setValue(votes[index].value);
 		}
 	}
+
 
 	winner = MapvoteGetMostVotedMap(votes);
 	map = winner.map;
@@ -701,54 +627,52 @@ function insertMap(key, displayname3, displayname6, image, exec_rotation)
 	level.maps_data[key].image = image;
 }
 
-
-
 function BuildMapsData()
 {
     level.maps_data = [];
-    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_loadscreen_biodome", "mp_biodome"); 
-    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_loadscreen_spire", "mp_spire");
-    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_loadscreen_sector", "mp_sector");
-    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_loadscreen_apartments", "mp_apartments");
-    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_loadscreen_chinatown", "");
-    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_loadscreen_veiled", "mp_veiled");
-    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_loadscreen_havoc", "mp_havoc");
-    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_loadscreen_ethiopia", "");
-    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_loadscreen_infection", "mp_infection");
-    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_loadscreen_metro", "mp_metro");
-    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_loadscreen_redwood", "mp_redwood");
-    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_loadscreen_stronghold", "mp_stronghold");
-    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_loadscreen_nuketown_x", "mp_nuketown_x");
+    insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_preview_biodome", "mp_biodome"); 
+    insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_preview_spire", "mp_spire");
+    insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_preview_sector", "mp_sector");
+    insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_preview_apartments", "mp_apartments");
+    insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_preview_chinatown", "");
+    insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_preview_veiled", "mp_veiled");
+    insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_preview_havoc", "mp_havoc");
+    insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_preview_ethiopia", "");
+    insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_preview_infection", "mp_infection");
+    insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_preview_metro", "mp_metro");
+    insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_preview_redwood", "mp_redwood");
+    insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_preview_stronghold", "mp_stronghold");
+    insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_preview_nuketown_x", "mp_nuketown_x");
 
 
     // Awakening DLC
-    insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_loadscreen_crucible", "mp_crucible");
-    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_loadscreen_rise", "mp_rise");
-    insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_loadscreen_skyjacked", "mp_skyjacked");
-    // insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_loadscreen_", ""); ?
-    insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_loadscreen_waterpark", "mp_waterpark");
+    insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_preview_crucible", "mp_crucible");
+    insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_preview_rise", "mp_rise");
+    insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_preview_skyjacked", "mp_skyjacked");
+    // insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_preview_", ""); ?
+    insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_preview_waterpark", "mp_waterpark");
 
     // Eclipse DLC
-    insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_loadscreen_kung_fu", "mp_kung_fu");
-    insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_loadscreen_conduit", "mp_conduit");
-    insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_loadscreen_aerospace", "mp_aerospace");
-    insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_loadscreen_banzai", "mp_banzai");
+    insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_preview_kung_fu", "mp_kung_fu");
+    insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_preview_conduit", "mp_conduit");
+    insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_preview_aerospace", "mp_aerospace");
+    insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_preview_banzai", "mp_banzai");
 
     // Descent DLC
-    insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_loadscreen_shrine", "mp_shrine");
-    insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_loadscreen_cryogen", "mp_cryogen");
-    insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_loadscreen_rome", "mp_rome");
-    insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_loadscreen_arena", "mp_arena");
+    insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_preview_shrine", "mp_shrine");
+    insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_preview_cryogen", "mp_cryogen");
+    insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_preview_rome", "mp_rome");
+    insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_preview_arena", "mp_arena");
 
     // Salvation DLC
-    insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_loadscreen_ruins", "mp_ruins");
-    insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_loadscreen_miniature", "mp_miniature");
-    insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_loadscreen_western", "mp_western");
-    insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_loadscreen_city", "mp_city");
+    insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_preview_ruins", "mp_ruins");
+    insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_preview_miniature", "mp_miniature");
+    insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_preview_western", "mp_western");
+    insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_preview_city", "mp_city");
 
     // Bonus Maps
-    insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_loadscreen_veiled_heyday", "mp_veiled_heyday"); 
-    insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_loadscreen_redwood_ice", "mp_redwood_ice"); 
+    insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_preview_veiled_heyday", "mp_veiled_heyday"); 
+    insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_preview_redwood_ice", "mp_redwood_ice"); 
 
     /*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
@@ -761,7 +685,7 @@ function BuildMapsData()
 			4) Map preview: Is the image to display on the mapvote
 			5) Map config: This is the code that get executed once the map rotate to the winning map on the mapvote
 		Let's make an exemple, i want to add a map called "Home depot" so i'll add this code:
-			insertMap("me_minecraft", &"Minecraft",  &"Minecraft - ", "loadscreen_me_minecraft", "exec minecraft.cfg map me_minecraft");
+			insertMap("me_minecraft", &"Minecraft",  &"Minecraft - ", "preview_me_minecraft", "exec minecraft.cfg map me_minecraft");
 	*/
 }
 
@@ -805,7 +729,7 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 	hud.elemtype = "icon";
 	hud.color = color;
 	// TODO: Reset it to 1 once find more infos about loadscrean images not loading issue and why the shaders are not align with the boxes. 
-	hud.alpha = 0;
+	hud.alpha = 1;
 	hud.sort = sort;
 	hud.children = [];
 	if (isDefined(align))
