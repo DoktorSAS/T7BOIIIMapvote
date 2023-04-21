@@ -21,11 +21,13 @@
 #insert scripts\shared\shared.gsh;
 
 #precache("material", "white");
+#precache("material", "uie_t7_hud_waypoints_compassping_enemy");
+#precache("material", "compassping_friendlyyelling_mp");
 
 /*
 	Mod: Mapvote Menu
 	Developed by DoktorSAS
-	Version: v0.0.0
+	Version: v0.1.0
 	Config:
 	set mv_enable			1 						// Enable/Disable the mapvote
 	set mv_maps				""						// Lits of maps that can be voted on the mapvote, leave empty for all maps
@@ -40,7 +42,11 @@
 	set mv_blur 			"3"						// Blur effect power
 	set mv_gametypes 		"dm;dm.cfg"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
 
-	TODO: List of supported features
+	Version: 0.1.0
+	- 3 and 5 maps support
+	- Credits, sentence and social on bottom left
+	- Simple keyboard and controller button support
+	- Allow to load gametypes
 */
 
 #namespace mapvote;
@@ -138,7 +144,7 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 {
 	self endon("disconnect");
 	level endon("game_ended");
-	level thread MapvoteStart();
+	//Note: Just for quit testing put level thread MapvoteStart(); here
 	self setblur(0, 0);
 	self thread handlePlayerButtons();
 }
@@ -220,18 +226,6 @@ function MapvotePlayerUI()
 	}
 
 	self thread DestroyBoxes(boxes);
-
-	/*
-		TODO: notifyonplayercommand do not exist so we need to find a workaround.
-		self notifyonplayercommand("left", "+attack");
-		self notifyonplayercommand("right", "+speed_throw");
-		self notifyonplayercommand("left", "+moveright");
-		self notifyonplayercommand("right", "+moveleft");
-		self notifyonplayercommand("select", "+usereload");
-		self notifyonplayercommand("select", "+activate");
-		self notifyonplayercommand("select", "+gostand");
-	*/
-
 	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
 	boxes[0] affectElement("alpha", 0.2, 1);
@@ -332,7 +326,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 	mapschoosed = [];
 	for (i = 0; i < times; i++)
 	{
-		index = randomIntRange(0, mapsIDs.size);
+		index = RandomIntRange(0, mapsIDs.size);
 		map = mapsIDs[index];
 		mapschoosed[i] = map;
 		logPrint("map;" + map + ";index;" + index + "\n");
@@ -368,22 +362,22 @@ function MapvoteStart()
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
 		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
 
-		level.mapvote["map1"].gametype = gametypes[randomIntRange(0, gametypes.size)];
-		level.mapvote["map2"].gametype = gametypes[randomIntRange(0, gametypes.size)];
-		level.mapvote["map3"].gametype = gametypes[randomIntRange(0, gametypes.size)];
+		level.mapvote["map1"].gametype = "dm";//gametypes[RandomIntRange(0, gametypes.size)];
+		level.mapvote["map2"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
+		level.mapvote["map3"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 
-		level.mapvote["map1"].gametypeUI = gametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
-		level.mapvote["map2"].gametypeUI = gametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
-		level.mapvote["map3"].gametypeUI = gametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
+		level.mapvote["map1"].gametypeUI = GametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
+		level.mapvote["map2"].gametypeUI = GametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
+		level.mapvote["map3"].gametypeUI = GametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
 
 		if (getDvarInt("mv_extramaps") == 1)
 		{
 			level.mapvote["map4"] = level.maps_data[mapschoosed[3]];
 			level.mapvote["map5"] = level.maps_data[mapschoosed[4]];
-			level.mapvote["map4"].gametype = gametypes[randomIntRange(0, gametypes.size)];
-			level.mapvote["map5"].gametype = gametypes[randomIntRange(0, gametypes.size)];
-			level.mapvote["map4"].gametypeUI = gametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
-			level.mapvote["map5"].gametypeUI = gametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
+			level.mapvote["map4"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
+			level.mapvote["map5"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
+			level.mapvote["map4"].gametypeUI = GametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
+			level.mapvote["map5"].gametypeUI = GametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
 		}
 
 		foreach (player in level.players)
@@ -414,12 +408,9 @@ function MapvoteServerUI()
 	mapsUI[1] = spawnStruct();
 	mapsUI[2] = spawnStruct();
 
-	mapsUI[0].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[2].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[0].mapname.label = level.mapvote["map1"].gametype;
-	mapsUI[1].mapname.label = level.mapvote["map2"].mapname + "" + level.mapvote["map2"].gametypeUI;
-	mapsUI[2].mapname.label = level.mapvote["map3"].mapname + "" + level.mapvote["map3"].gametypeUI;
+	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].gametypeUI + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
 	if (getDvarInt("mv_extramaps") == 1)
 	{
@@ -427,11 +418,8 @@ function MapvoteServerUI()
 		mapsUI[3] = spawnStruct();
 		mapsUI[4] = spawnStruct();
 
-		mapsUI[3].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[4].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-
-		mapsUI[3].mapname.label = level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI;
-		mapsUI[4].mapname.label = level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI;
+		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	}
 	else
 	{
@@ -633,25 +621,16 @@ function MapvoteSetRotation(mapid, gametype)
 	level notify("mv_ended");
 }
 
-function insertMap(key, displayname3, displayname6, image, exec_rotation)
+function insertMap(key, displayname, image, exec_rotation)
 {
 	/*
 		key          : it rappresent that map id/key to use on the dvar mp_maps
-		displayname3 : displayname3 its the mapname used for the 3 maps mapvote version
-		displayname6 : displayname6 its the mapname used for the 6 maps mapvote version (TODO: Check hud limites, we don't know if can support 6 maps)
+		displayname : displayname3 its the mapname used for the 3 maps mapvote version
 		image        : is the image shader to use for the map
 		exec_rotation: it rappresent the value of sv_maprotationcurrent before map rotation get invoked
 	*/
 	level.maps_data[key] = SpawnStruct();
-	if (getDvarInt("mv_extramaps") == 1)
-	{
-		level.maps_data[key].mapname = displayname6;
-	}
-	else
-	{
-		level.maps_data[key].mapname = displayname3;
-	}
-
+	level.maps_data[key].mapname = displayname;
 	level.maps_data[key].exec_rotation = exec_rotation;
 	level.maps_data[key].image = image;
 }
@@ -659,61 +638,59 @@ function insertMap(key, displayname3, displayname6, image, exec_rotation)
 function BuildMapsData()
 {
 	level.maps_data = [];
-	insertMap("mp_biodome", &"Aquarium", &"Aquarium - ", "img_t7_menu_mp_preview_biodome", "mp_biodome");
-	insertMap("mp_spire", &"Breach", &"Breach - ", "img_t7_menu_mp_preview_spire", "mp_spire");
-	insertMap("mp_sector", &"Combine", &"Combine - ", "img_t7_menu_mp_preview_sector", "mp_sector");
-	insertMap("mp_apartments", &"Evac", &"Evac - ", "img_t7_menu_mp_preview_apartments", "mp_apartments");
-	insertMap("mp_chinatown", &"Exodus", &"Exodus - ", "img_t7_menu_mp_preview_chinatown", "");
-	insertMap("mp_veiled", &"Fringe", &"Fringe - ", "img_t7_menu_mp_preview_veiled", "mp_veiled");
-	insertMap("mp_havoc", &"Havoc", &"Havoc - ", "img_t7_menu_mp_preview_havoc", "mp_havoc");
-	insertMap("mp_ethiopia", &"Hunted", &"Hunted - ", "img_t7_menu_mp_preview_ethiopia", "");
-	insertMap("mp_infection", &"Infection", &"Infection - ", "img_t7_menu_mp_preview_infection", "mp_infection");
-	insertMap("mp_metro", &"Metro", &"Metro - ", "img_t7_menu_mp_preview_metro", "mp_metro");
-	insertMap("mp_redwood", &"Redwood", &"Redwood - ", "img_t7_menu_mp_preview_redwood", "mp_redwood");
-	insertMap("mp_stronghold", &"Stronghold", &"Stronghold - ", "img_t7_menu_mp_preview_stronghold", "mp_stronghold");
-	insertMap("mp_nuketown_x", &"Nuk3town", &"Nuk3town - ", "img_t7_menu_mp_preview_nuketown_x", "mp_nuketown_x");
+	insertMap("mp_biodome", "Aquarium", "img_t7_menu_mp_preview_biodome", "mp_biodome");
+	insertMap("mp_spire", "Breach", "img_t7_menu_mp_preview_spire", "mp_spire");
+	insertMap("mp_sector", "Combine", "img_t7_menu_mp_preview_sector", "mp_sector");
+	insertMap("mp_apartments", "Evac", "img_t7_menu_mp_preview_apartments", "mp_apartments");
+	insertMap("mp_chinatown", "Exodus", "img_t7_menu_mp_preview_chinatown", "");
+	insertMap("mp_veiled", "Fringe", "img_t7_menu_mp_preview_veiled", "mp_veiled");
+	insertMap("mp_havoc", "Havoc", "img_t7_menu_mp_preview_havoc", "mp_havoc");
+	insertMap("mp_ethiopia", "Hunted", "img_t7_menu_mp_preview_ethiopia", "");
+	insertMap("mp_infection", "Infection", "img_t7_menu_mp_preview_infection", "mp_infection");
+	insertMap("mp_metro", "Metro", "img_t7_menu_mp_preview_metro", "mp_metro");
+	insertMap("mp_redwood", "Redwood","img_t7_menu_mp_preview_redwood", "mp_redwood");
+	insertMap("mp_stronghold", "Stronghold", "img_t7_menu_mp_preview_stronghold", "mp_stronghold");
+	insertMap("mp_nuketown_x", "Nuk3town", "img_t7_menu_mp_preview_nuketown_x", "mp_nuketown_x");
 
 	// Awakening DLC
-	insertMap("mp_crucible", &"Gauntlet", &"Gauntlet - ", "img_t7_menu_mp_preview_crucible", "mp_crucible");
-	insertMap("mp_rise", &"Rise", &"Rise - ", "img_t7_menu_mp_preview_rise", "mp_rise");
-	insertMap("mp_skyjacked", &"Skyjacked", &"Skyjacked - ", "img_t7_menu_mp_preview_skyjacked", "mp_skyjacked");
-	// insertMap("zm_factory", &"The Giant", &"The Giant - ", "img_t7_menu_mp_preview_", ""); ?
-	insertMap("mp_waterpark", &"Splash", &"Splash - ", "img_t7_menu_mp_preview_waterpark", "mp_waterpark");
+	insertMap("mp_crucible", "Gauntlet", "img_t7_menu_mp_preview_crucible", "mp_crucible");
+	insertMap("mp_rise", "Rise", "img_t7_menu_mp_preview_rise", "mp_rise");
+	insertMap("mp_skyjacked", "Skyjacked", "img_t7_menu_mp_preview_skyjacked", "mp_skyjacked");
+	insertMap("mp_waterpark", "Splash", "img_t7_menu_mp_preview_waterpark", "mp_waterpark");
 
 	// Eclipse DLC
-	insertMap("mp_kung_fu", &"Knockout", &"Knockout - ", "img_t7_menu_mp_preview_kung_fu", "mp_kung_fu");
-	insertMap("mp_conduit", &"Rift", &"Rift - ", "img_t7_menu_mp_preview_conduit", "mp_conduit");
-	insertMap("mp_aerospace", &"Spire", &"Spire - ", "img_t7_menu_mp_preview_aerospace", "mp_aerospace");
-	insertMap("mp_banzai", &"Verge", &"Verge - ", "img_t7_menu_mp_preview_banzai", "mp_banzai");
+	insertMap("mp_kung_fu", "Knockout", "img_t7_menu_mp_preview_kung_fu", "mp_kung_fu");
+	insertMap("mp_conduit", "Rift", "img_t7_menu_mp_preview_conduit", "mp_conduit");
+	insertMap("mp_aerospace", "Spire", "img_t7_menu_mp_preview_aerospace", "mp_aerospace");
+	insertMap("mp_banzai", "Verge", "img_t7_menu_mp_preview_banzai", "mp_banzai");
 
 	// Descent DLC
-	insertMap("mp_shrine", &"Berserk", &"Berserk - ", "img_t7_menu_mp_preview_shrine", "mp_shrine");
-	insertMap("mp_cryogen", &"Cryogen", &"Cryogen - ", "img_t7_menu_mp_preview_cryogen", "mp_cryogen");
-	insertMap("mp_rome", &"Empire", &"Empire - ", "img_t7_menu_mp_preview_rome", "mp_rome");
-	insertMap("mp_arena", &"Rumble", &"Rumble - ", "img_t7_menu_mp_preview_arena", "mp_arena");
+	insertMap("mp_shrine", "Berserk", "img_t7_menu_mp_preview_shrine", "mp_shrine");
+	insertMap("mp_cryogen", "Cryogen", "img_t7_menu_mp_preview_cryogen", "mp_cryogen");
+	insertMap("mp_rome", "Empire", "img_t7_menu_mp_preview_rome", "mp_rome");
+	insertMap("mp_arena", "Rumble", "img_t7_menu_mp_preview_arena", "mp_arena");
 
 	// Salvation DLC
-	insertMap("mp_ruins", &"Citadel", &"Citadel - ", "img_t7_menu_mp_preview_ruins", "mp_ruins");
-	insertMap("mp_miniature", &"Micro", &"Micro - ", "img_t7_menu_mp_preview_miniature", "mp_miniature");
-	insertMap("mp_western", &"Outlaw", &"Outlaw - ", "img_t7_menu_mp_preview_western", "mp_western");
-	insertMap("mp_city", &"Rupture", &"Rupture - ", "img_t7_menu_mp_preview_city", "mp_city");
+	insertMap("mp_ruins", "Citadel", "img_t7_menu_mp_preview_ruins", "mp_ruins");
+	insertMap("mp_miniature", "Micro", "img_t7_menu_mp_preview_miniature", "mp_miniature");
+	insertMap("mp_western", "Outlaw", "img_t7_menu_mp_preview_western", "mp_western");
+	insertMap("mp_city", "Rupture", "img_t7_menu_mp_preview_city", "mp_city");
 
 	// Bonus Maps
-	insertMap("mp_veiled_heyday", &"Fringe Night", &"Fringe Night - ", "img_t7_menu_mp_preview_veiled_heyday", "mp_veiled_heyday");
-	insertMap("mp_redwood_ice", &"Redwood Snow", &"Redwood Snow - ", "img_t7_menu_mp_preview_redwood_ice", "mp_redwood_ice");
+	insertMap("mp_veiled_heyday", "Fringe Night", "img_t7_menu_mp_preview_veiled_heyday", "mp_veiled_heyday");
+	insertMap("mp_redwood_ice", "Redwood Snow", "img_t7_menu_mp_preview_redwood_ice", "mp_redwood_ice");
 
 	/*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
 		How to do it?
-		1. Copy insertMap("", &"",  &" - ", "", ""); and paste it under level.maps_dataata = [];
+		1. Copy insertMap("", "",  "", ""); and paste it under level.maps_dataata = [];
 		2. Compile the empty spaces, the arguments in ordare are:
 			1) Map custom id: Is an id that you can use in your mv_maps dvar to identify this specific map
-			2) Map UI name for 3 maps versio: It display this one if the dvar mv_extramaps is set to 0
-			3) Map UI name for 6 maps versio: It display this one if the dvar mv_extramaps is set to 1
+			2) Map UI name: Is the display name
 			4) Map preview: Is the image to display on the mapvote
 			5) Map config: This is the code that get executed once the map rotate to the winning map on the mapvote
 		Let's make an exemple, i want to add a map called "Home depot" so i'll add this code:
-			insertMap("me_minecraft", &"Minecraft",  &"Minecraft - ", "preview_me_minecraft", "exec minecraft.cfg map me_minecraft");
+			insertMap("me_minecraft", "Minecraft", "preview_me_minecraft", "exec minecraft.cfg map me_minecraft");
 	*/
 }
 
@@ -873,60 +850,61 @@ function GametypeToName(gametype)
 	{
 	case "dm":
 		return "Free for all";
-
+	break;
 	case "tdm":
 		return "Team Deathmatch";
-
+	break;
 	case "ball":
 		return "Uplink";
-
+	break;
 	case "sd":
 		return "Search & Destroy";
-
+	break;
 	case "sr":
 		return "Search & Rescue";
-
+	break;
 	case "dom":
 		return "Domination";
-
+	break;
 	case "dem":
 		return "Demolition";
-
+	break;
 	case "conf":
 		return "Kill Confirmed";
-
+	break;
 	case "ctf":
 		return "Capture the Flag";
-
+	break;
 	case "shrp":
 		return "Sharpshooter";
-
+	break;
 	case "gun":
 		return "Gun Game";
-
+	break;
 	case "sas":
 		return "Sticks & Stones";
-
+	break;
 	case "hq":
 		return "Headquaters";
-
+	break;
 	case "koth":
 		return "Hardpoint";
-
+	break;
 	case "escort":
 		return "Safeguard";
-
+	break;
 	case "clean":
 		return "Fracture";
-
+	break;
 	case "prop":
 		return "Prop Hunt";
-
+	break;
 	case "infect":
 		return "Infected";
-
+	break;
 	case "sniperonly":
 		return "Snipers Only";
+	break;
 	}
 	return "invalid";
 }
