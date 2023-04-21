@@ -129,15 +129,16 @@ function on_player_connect()
 		level.clientid++; // Is this safe? What if a server runs for a long time and many people join/leave
 	}
 
-	/ #PrintLn("client: " + self.name + " clientid: " + self.clientid);
-#/
+	/#
+		PrintLn("client: " + self.name + " clientid: " + self.clientid);
+	#/
 }
 
 function on_player_spawned() // Patch for blur effect persisting (TODO: This issue is a BO2 issue, i don't know if BO3 have the same bug)
 {
 	self endon("disconnect");
 	level endon("game_ended");
-	// level thread MapvoteStart();
+	level thread MapvoteStart();
 	self setblur(0, 0);
 	self thread handlePlayerButtons();
 }
@@ -361,6 +362,7 @@ function MapvoteStart()
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
+		gametypes = [];
 		gametypes = strTok(getDvarString("mv_gametypes"), " ");
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
@@ -370,7 +372,7 @@ function MapvoteStart()
 		level.mapvote["map2"].gametype = gametypes[randomIntRange(0, gametypes.size)];
 		level.mapvote["map3"].gametype = gametypes[randomIntRange(0, gametypes.size)];
 
-		level.mapvote["map1"].gametypeUI = "dm"; // gametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
+		level.mapvote["map1"].gametypeUI = gametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
 		level.mapvote["map2"].gametypeUI = gametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
 		level.mapvote["map3"].gametypeUI = gametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
 
@@ -383,8 +385,6 @@ function MapvoteStart()
 			level.mapvote["map4"].gametypeUI = gametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
 			level.mapvote["map5"].gametypeUI = gametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
 		}
-
-		// TODO: It miss the code who handle the selection of a random gametype
 
 		foreach (player in level.players)
 		{
@@ -417,7 +417,7 @@ function MapvoteServerUI()
 	mapsUI[0].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[1].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[2].mapname = level CreateString(&"", "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[0].mapname.label = level.mapvote["map1"].gametypeUI;
+	mapsUI[0].mapname.label = level.mapvote["map1"].gametype;
 	mapsUI[1].mapname.label = level.mapvote["map2"].mapname + "" + level.mapvote["map2"].gametypeUI;
 	mapsUI[2].mapname.label = level.mapvote["map3"].mapname + "" + level.mapvote["map3"].gametypeUI;
 
