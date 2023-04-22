@@ -5,7 +5,7 @@ This project is a project that started in March 2020. The script allows players 
 
 ## Support
 - **multiplayer** *(Call of Duty: Black Ops III Multiplayer)* `PC`
-- **zombies** *(Call of Duty: Black Ops III Zombies)* `PC`
+- TODO: **zombies** *(Call of Duty: Black Ops III Zombies)* `PC`
 
 ## Usage
 Configuration guides are written within the appropriate folders. 
