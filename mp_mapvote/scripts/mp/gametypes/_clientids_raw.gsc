@@ -339,7 +339,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 // Note: is required for  [[level.onEndGame_stub]](winner);  or [[level.onRoundEndGame_stub]](winner); -> function MapvoteStart(winner)
 function MapvoteStart()
 {
-	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
+	if (getDvarInt("mv_enable") != 1 || !util::wasLastRound()) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
 
 	if (!isDefined(level.mapvote_started))
@@ -424,10 +424,6 @@ function MapvoteServerUI()
 	else
 	{
 		buttons hud::setPoint("CENTER", "CENTER", 0, 100);
-
-		mapsUI[0].textbg = level DrawShader("black", -220, 186, 200, 32, (1, 1, 1), 1, 3, "LEFT", "CENTER", 1);
-		mapsUI[1].textbg = level DrawShader("black", 0, 186, 200, 32, (1, 1, 1), 1, 3, "CENTER", "CENTER", 1);
-		mapsUI[2].textbg = level DrawShader("black", 220, 186, 200, 32, (1, 1, 1), 1, 3, "RIGHT", "CENTER", 1);
 	}
 
 	level notify("mv_start_animation");
@@ -451,7 +447,7 @@ function MapvoteServerUI()
 		{
 			map.textbg.y = 186 + dynamic_position;
 		}
-		// map.image affectElement("y", 1.2, 89 + dynamic_position);
+		//map.image affectElement("y", 1.2, 89 + dynamic_position);
 	}
 
 	wait 1;
@@ -479,7 +475,7 @@ function MapvoteServerUI()
 		{
 			map.textbg affectElement("alpha", 0.4, 0);
 		}
-		// map.image affectElement("alpha", 0.4, 0);
+		//map.image affectElement("alpha", 0.4, 0);
 	}
 
 	credits affectElement("alpha", 0.5, 0);
