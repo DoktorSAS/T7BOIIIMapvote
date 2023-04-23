@@ -409,7 +409,7 @@ function MapvoteServerUI()
 	mapsUI[2] = spawnStruct();
 
 	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].gametypeUI + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
 	if (getDvarInt("mv_extramaps") == 1)
