@@ -640,10 +640,10 @@ function BuildMapsData()
 	insertMap("mp_spire", "Breach", "img_t7_menu_mp_preview_spire", "mp_spire");
 	insertMap("mp_sector", "Combine", "img_t7_menu_mp_preview_sector", "mp_sector");
 	insertMap("mp_apartments", "Evac", "img_t7_menu_mp_preview_apartments", "mp_apartments");
-	insertMap("mp_chinatown", "Exodus", "img_t7_menu_mp_preview_chinatown", "");
+	insertMap("mp_chinatown", "Exodus", "img_t7_menu_mp_preview_chinatown", "mp_chinatown");
 	insertMap("mp_veiled", "Fringe", "img_t7_menu_mp_preview_veiled", "mp_veiled");
 	insertMap("mp_havoc", "Havoc", "img_t7_menu_mp_preview_havoc", "mp_havoc");
-	insertMap("mp_ethiopia", "Hunted", "img_t7_menu_mp_preview_ethiopia", "");
+	insertMap("mp_ethiopia", "Hunted", "img_t7_menu_mp_preview_ethiopia", "mp_ethiopia");
 	insertMap("mp_infection", "Infection", "img_t7_menu_mp_preview_infection", "mp_infection");
 	insertMap("mp_metro", "Metro", "img_t7_menu_mp_preview_metro", "mp_metro");
 	insertMap("mp_redwood", "Redwood","img_t7_menu_mp_preview_redwood", "mp_redwood");
