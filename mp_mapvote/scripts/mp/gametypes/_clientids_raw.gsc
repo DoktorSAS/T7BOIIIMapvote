@@ -362,7 +362,7 @@ function MapvoteStart()
 		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
 		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
 
-		level.mapvote["map1"].gametype = "dm";//gametypes[RandomIntRange(0, gametypes.size)];
+		level.mapvote["map1"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 		level.mapvote["map2"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 		level.mapvote["map3"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 
@@ -408,8 +408,8 @@ function MapvoteServerUI()
 	mapsUI[1] = spawnStruct();
 	mapsUI[2] = spawnStruct();
 
-	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map1"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname + "\n" + level.mapvote["map2"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
 	if (getDvarInt("mv_extramaps") == 1)
@@ -418,8 +418,8 @@ function MapvoteServerUI()
 		mapsUI[3] = spawnStruct();
 		mapsUI[4] = spawnStruct();
 
-		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	}
 	else
 	{
@@ -606,12 +606,14 @@ function MapvoteSetRotation(mapid, gametype)
 {
 	array = strTok(gametype, ";");
 	str = "";
+	if (array.size > 0)
+	{
+		str = "gametype " + array[0];
+	}
 	if (array.size > 1)
 	{
-		str = "exec " + array[1];
+		str = str + " exec " + array[1];
 	}
-	logPrint("mapvote//gametype//" + array[0] + "//executing//" + str + "\n");
-	setdvar("g_gametype", array[0]);
 	setdvar("sv_maprotationcurrent", str + " map " + mapid);
 	setdvar("sv_maprotation", str + " map " + mapid);
 	level notify("mv_ended");
@@ -729,7 +731,6 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 		hud = newclienthudelem(self);
 	hud.elemtype = "icon";
 	hud.color = color;
-	// TODO: Reset it to 1 once find more infos about loadscrean images not loading issue and why the shaders are not align with the boxes.
 	hud.alpha = 1;
 	hud.sort = sort;
 	hud.children = [];
