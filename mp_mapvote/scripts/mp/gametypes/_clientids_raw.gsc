@@ -146,7 +146,6 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 	level endon("game_ended");
 	//Note: Just for quit testing put level thread MapvoteStart(); here
 	self setblur(0, 0);
-	self thread handlePlayerButtons();
 }
 
 function handlePlayerButtons()
@@ -194,6 +193,7 @@ function IsInizialized(dvar)
 // mv_client.gsc
 function MapvotePlayerUI()
 {
+	self thread handlePlayerButtons();
 	self setblur(getDvarFloat("mv_blur"), 1.5);
 
 	scroll_color = getColor(getDvarString("mv_scrollcolor"));
