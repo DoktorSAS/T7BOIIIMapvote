@@ -40,7 +40,6 @@
 	set mv_selectcolor 		"lighgreen"				// RGB Color when map get voted
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
-	set mv_gametypes 		"dm;dm.cfg"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
 
 	Version: 0.1.0
 	- 3 and 5 maps support
@@ -118,7 +117,6 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_scrollcolor", "cyan");
 	SetDvarIfNotInizialized("mv_selectcolor", "lightgreen");
 	SetDvarIfNotInizialized("mv_backgroundcolor", "grey");
-	SetDvarIfNotInizialized("mv_gametypes", "dm;dm.cfg tdm;tdm.cfg dm;dm.cfg tdm;tdm.cfg sd;sd.cfg sd;sd.cfg");
 	setDvarIfNotInizialized("mv_excludedmaps", "");
 
 	// Nota: It is on end game and lock the game in the state but it display a fully white screen
@@ -356,28 +354,11 @@ function MapvoteStart()
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
-		gametypes = [];
-		gametypes = strTok(getDvarString("mv_gametypes"), " ");
-		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
-		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
-		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
-
-		level.mapvote["map1"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-		level.mapvote["map2"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-		level.mapvote["map3"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-
-		level.mapvote["map1"].gametypeUI = GametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
-		level.mapvote["map2"].gametypeUI = GametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
-		level.mapvote["map3"].gametypeUI = GametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
 
 		if (getDvarInt("mv_extramaps") == 1)
 		{
 			level.mapvote["map4"] = level.maps_data[mapschoosed[3]];
 			level.mapvote["map5"] = level.maps_data[mapschoosed[4]];
-			level.mapvote["map4"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-			level.mapvote["map5"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-			level.mapvote["map4"].gametypeUI = GametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
-			level.mapvote["map5"].gametypeUI = GametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
 		}
 
 		foreach (player in level.players)
@@ -408,9 +389,9 @@ function MapvoteServerUI()
 	mapsUI[1] = spawnStruct();
 	mapsUI[2] = spawnStruct();
 
-	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map1"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname + "\n" + level.mapvote["map2"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 
 	if (getDvarInt("mv_extramaps") == 1)
 	{
@@ -418,8 +399,8 @@ function MapvoteServerUI()
 		mapsUI[3] = spawnStruct();
 		mapsUI[4] = spawnStruct();
 
-		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
 	}
 	else
 	{
@@ -582,7 +563,7 @@ function VoteManager()
 
 	winner = MapvoteGetMostVotedMap(votes);
 	map = winner.map;
-	MapvoteSetRotation(map.exec_rotation, map.gametype);
+	MapvoteSetRotation(map.exec_rotation);
 
 	wait 1.2;
 }
@@ -602,20 +583,10 @@ function MapvoteGetMostVotedMap(votes)
 	return winner;
 }
 
-function MapvoteSetRotation(mapid, gametype)
+function MapvoteSetRotation(exec_rotation)
 {
-	array = strTok(gametype, ";");
-	str = "";
-	if (array.size > 0)
-	{
-		str = "gametype " + array[0];
-	}
-	if (array.size > 1)
-	{
-		str = str + " exec " + array[1];
-	}
-	setdvar("sv_maprotationcurrent", str + " map " + mapid);
-	setdvar("sv_maprotation", str + " map " + mapid);
+	setdvar("sv_maprotationcurrent", exec_rotation);
+	setdvar("sv_maprotation", exec_rotation);
 	level notify("mv_ended");
 }
 
@@ -636,24 +607,24 @@ function insertMap(key, displayname, image, exec_rotation)
 function BuildMapsData()
 {
 	level.maps_data = [];
-	insertMap("zm_zod", "Shadows Of Evil", "img_t7_menu_zm_preview_zod", "zm_zod");
+	insertMap("zm_zod", "Shadows Of Evil", "img_t7_menu_zm_preview_zod", "gametype zclassic map zm_zod");
 	//Awakening
-	insertMap("zm_castle", "Der Eisendrache", "img_t7_menu_zm_preview_castle", "zm_castle");
+	insertMap("zm_castle", "Der Eisendrache", "img_t7_menu_zm_preview_castle", "gametype zclassic mapzm_castle");
       //Eclipse
-	insertMap("zm_island", "Zetsubou No Shima", "img_t7_menu_zm_preview_island", "zm_island");
+	insertMap("zm_island", "Zetsubou No Shima", "img_t7_menu_zm_preview_island", "gametype zclassic mapzm_island");
       //Descent
-	insertMap("zm_stalingrad", "Gorod Krovi", "img_t7_menu_zm_preview_stalingrad", "zm_stalingrad");
+	insertMap("zm_stalingrad", "Gorod Krovi", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic mapzm_stalingrad");
       //Salvation
-	insertMap("zm_genesis", "Revelations", "img_t7_menu_zm_preview_stalingrad", "zm_genesis");
+	insertMap("zm_genesis", "Revelations", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic mapzm_genesis");
       //Chronicles
-	insertMap("zm_cosmodrome", "Ascension", "img_t7_menu_zm_preview_cosmodrome", "zm_cosmodrome");
-	insertMap("zm_theater", "Kino der Toten", "img_t7_menu_zm_preview_theater", "zm_theater");
-	insertMap("zm_moon", "Moon", "img_t7_menu_zm_preview_moon", "zm_moon");
-	insertMap("zm_prototype", "Nacht der Untoten", "img_t7_menu_zm_preview_prototype", "zm_prototype");
-	insertMap("zm_tomb", "Origins", "img_t7_menu_zm_preview_tomb", "zm_tomb");
-	insertMap("zm_temple", "Shangri-La", "img_t7_menu_zm_preview_tomb", "zm_temple");
-	insertMap("zm_factory", "The Giant", "img_t7_menu_zm_preview_tomb", "zm_factory");
-	insertMap("zm_asylum", "Verrückt", "img_t7_menu_zm_preview_tomb", "zm_asylum");
+	insertMap("zm_cosmodrome", "Ascension", "img_t7_menu_zm_preview_cosmodrome", "gametype zclassic mapzm_cosmodrome");
+	insertMap("zm_theater", "Kino der Toten", "img_t7_menu_zm_preview_theater", "gametype zclassic mapzm_theater");
+	insertMap("zm_moon", "Moon", "img_t7_menu_zm_preview_moon", "gametype zclassic map zm_moon");
+	insertMap("zm_prototype", "Nacht der Untoten", "img_t7_menu_zm_preview_prototype", "gametype zclassic map zm_prototype");
+	insertMap("zm_tomb", "Origins", "img_t7_menu_zm_preview_tomb", "gametype zclassic map zm_tomb");
+	insertMap("zm_temple", "Shangri-La", "img_t7_menu_zm_preview_tomb", "gametype zclassic map zm_temple");
+	insertMap("zm_factory", "The Giant", "img_t7_menu_zm_preview_tomb", "gametype zclassic map zm_factory");
+	insertMap("zm_asylum", "Verrückt", "img_t7_menu_zm_preview_tomb", "gametype zclassic map zm_asylum");
 
 	/*
 		To add a new map to the mapvote you need to edit this function called buildmaps_dataata.
@@ -664,8 +635,8 @@ function BuildMapsData()
 			2) Map UI name: Is the display name
 			4) Map preview: Is the image to display on the mapvote
 			5) Map config: This is the code that get executed once the map rotate to the winning map on the mapvote
-		Let's make an exemple, i want to add a map called "Home depot" so i'll add this code:
-			insertMap("me_minecraft", "Minecraft", "preview_me_minecraft", "exec minecraft.cfg map me_minecraft");
+		Let's make an exemple, i want to add a map called "Minecraft" so i'll add this code:
+			insertMap("zm_minecraft", "Minecraft", "preview_zm_minecraft", "gametype zclassic exec minecraft.cfg map zm_minecraft");
 	*/
 }
 

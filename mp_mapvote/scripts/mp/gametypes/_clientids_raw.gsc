@@ -687,8 +687,8 @@ function BuildMapsData()
 			2) Map UI name: Is the display name
 			4) Map preview: Is the image to display on the mapvote
 			5) Map config: This is the code that get executed once the map rotate to the winning map on the mapvote
-		Let's make an exemple, i want to add a map called "Home depot" so i'll add this code:
-			insertMap("me_minecraft", "Minecraft", "preview_me_minecraft", "exec minecraft.cfg map me_minecraft");
+		Let's make an exemple, i want to add a map called "Minecraft" so i'll add this code:
+			insertMap("mp_minecraft", "Minecraft", "preview_mp_minecraft", "mp_minecraft");
 	*/
 }
 
