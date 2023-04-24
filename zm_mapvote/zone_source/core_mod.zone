@@ -3,6 +3,8 @@
 
 #include "core_mod.class"
 
+scriptparsetree,scripts\zm\gametypes\_clientids.gsc
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // you should keep these defaults cfg in core_mod and always include them in your mods this is to prevent the game from hitching when it needs to execute them
 rawfile,mod.cfg
