@@ -21,8 +21,6 @@
 #insert scripts\shared\shared.gsh;
 
 #precache("material", "white");
-#precache("material", "uie_t7_hud_waypoints_compassping_enemy");
-#precache("material", "compassping_friendlyyelling_mp");
 
 /*
 	Mod: Mapvote Menu
@@ -48,9 +46,9 @@
 	- Allow to load gametypes
 */
 
-#namespace mapvote;
+#namespace clientids;
 
-REGISTER_SYSTEM("mapvote", &__init__, undefined)
+REGISTER_SYSTEM("clientids", &__init__, undefined)
 
 function __init__()
 {
@@ -76,7 +74,7 @@ function init()
 	// level.endGameFunction = &MapvoteStart;
 	// level.onRoundEndGame_stub = level.onRoundEndGame;
 	// level.onRoundEndGame = &MapvoteStart;
-	level.startMapvote = &MapvoteStart;
+	level.custom_end_screen = &MapvoteStart;
 }
 
 function MapvoteConfigurate()
@@ -98,7 +96,7 @@ function MapvoteConfigurate()
 	//{
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
 	// }
-	SetDvarIfNotInizialized("mv_maps", "mp_biodome mp_spire mp_sector mp_apartments mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_redwood mp_stronghold mp_nuketown_x mp_shrine mp_ruins mp_cryogen mp_rome mp_crucible mp_kung_fu mp_miniature mp_western mp_conduit mp_rise mp_arena mp_city mp_skyjacked mp_aerospace mp_waterpark mp_banzai mp_veiled_heyday mp_redwood_ice");
+	SetDvarIfNotInizialized("mv_maps", "zm_zod zm_castle zm_island zm_stalingrad zm_genesis zm_cosmodrome zm_theater zm_cosmodrome zm_theater zm_moon zm_prototype zm_tomb zm_temple zm_factory zm_asylum");
 
 	// PreCache maps images
 	maps_data = [];
@@ -143,8 +141,10 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 	self endon("disconnect");
 	level endon("game_ended");
 	//Note: Just for quit testing put level thread MapvoteStart(); here
+	level flag::wait_till("initial_blackscreen_passed");
+	level thread MapvoteStart();
+	
 	self setblur(0, 0);
-	self thread handlePlayerButtons();
 }
 
 function handlePlayerButtons()
@@ -192,6 +192,7 @@ function IsInizialized(dvar)
 // mv_client.gsc
 function MapvotePlayerUI()
 {
+	self thread handlePlayerButtons();
 	self setblur(getDvarFloat("mv_blur"), 1.5);
 
 	scroll_color = getColor(getDvarString("mv_scrollcolor"));
@@ -337,7 +338,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 // Note: is required for  [[level.onEndGame_stub]](winner);  or [[level.onRoundEndGame_stub]](winner); -> function MapvoteStart(winner)
 function MapvoteStart()
 {
-	if (getDvarInt("mv_enable") != 1 || !util::wasLastRound()) // Check if mapvote is enable
+	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
 
 	if (!isDefined(level.mapvote_started))
@@ -354,6 +355,9 @@ function MapvoteStart()
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
+		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
+		level.mapvote["map2"] = level.maps_data[mapschoosed[1]];
+		level.mapvote["map3"] = level.maps_data[mapschoosed[2]];
 
 		if (getDvarInt("mv_extramaps") == 1)
 		{
@@ -609,16 +613,16 @@ function BuildMapsData()
 	level.maps_data = [];
 	insertMap("zm_zod", "Shadows Of Evil", "img_t7_menu_zm_preview_zod", "gametype zclassic map zm_zod");
 	//Awakening
-	insertMap("zm_castle", "Der Eisendrache", "img_t7_menu_zm_preview_castle", "gametype zclassic mapzm_castle");
+	insertMap("zm_castle", "Der Eisendrache", "img_t7_menu_zm_preview_castle", "gametype zclassic map zm_castle");
       //Eclipse
-	insertMap("zm_island", "Zetsubou No Shima", "img_t7_menu_zm_preview_island", "gametype zclassic mapzm_island");
+	insertMap("zm_island", "Zetsubou No Shima", "img_t7_menu_zm_preview_island", "gametype zclassic map zm_island");
       //Descent
-	insertMap("zm_stalingrad", "Gorod Krovi", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic mapzm_stalingrad");
+	insertMap("zm_stalingrad", "Gorod Krovi", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic map zm_stalingrad");
       //Salvation
-	insertMap("zm_genesis", "Revelations", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic mapzm_genesis");
+	insertMap("zm_genesis", "Revelations", "img_t7_menu_zm_preview_stalingrad", "gametype zclassic map zm_genesis");
       //Chronicles
-	insertMap("zm_cosmodrome", "Ascension", "img_t7_menu_zm_preview_cosmodrome", "gametype zclassic mapzm_cosmodrome");
-	insertMap("zm_theater", "Kino der Toten", "img_t7_menu_zm_preview_theater", "gametype zclassic mapzm_theater");
+	insertMap("zm_cosmodrome", "Ascension", "img_t7_menu_zm_preview_cosmodrome", "gametype zclassic map zm_cosmodrome");
+	insertMap("zm_theater", "Kino der Toten", "img_t7_menu_zm_preview_theater", "gametype zclassic map zm_theater");
 	insertMap("zm_moon", "Moon", "img_t7_menu_zm_preview_moon", "gametype zclassic map zm_moon");
 	insertMap("zm_prototype", "Nacht der Untoten", "img_t7_menu_zm_preview_prototype", "gametype zclassic map zm_prototype");
 	insertMap("zm_tomb", "Origins", "img_t7_menu_zm_preview_tomb", "gametype zclassic map zm_tomb");
@@ -638,6 +642,7 @@ function BuildMapsData()
 		Let's make an exemple, i want to add a map called "Minecraft" so i'll add this code:
 			insertMap("zm_minecraft", "Minecraft", "preview_zm_minecraft", "gametype zclassic exec minecraft.cfg map zm_minecraft");
 	*/
+	return level.maps_data;
 }
 
 function CreateString(input, font, fontScale, align, relative, x, y, color, alpha, glowColor, glowAlpha, sort, isValue)
