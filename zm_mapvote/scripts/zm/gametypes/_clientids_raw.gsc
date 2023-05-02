@@ -17,6 +17,7 @@
 #using scripts\shared\hud_util_shared;
 #using scripts\shared\hud_message_shared;
 #using scripts\shared\hud_shared;
+#using scripts\zm\gametypes\_globallogic;
 
 #insert scripts\shared\shared.gsh;
 
@@ -64,18 +65,44 @@ function __init__()
 
 function init()
 {
-	// precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
-	// precacheStatusIcon("compassping_friendlyyelling_mp");
 	MapvoteConfigurate();
-	// Note: Don't lock the game on the state but at least get called on endgame
-	// level.onEndGame_sub = level.onEndGame;
-	// level.onEndGame = &MapvoteStart;
-	// Note: Don't get called at all
-	// level.endGameFunction = &MapvoteStart;
-	// level.onRoundEndGame_stub = level.onRoundEndGame;
-	// level.onRoundEndGame = &MapvoteStart;
-	level.custom_end_screen = &MapvoteStart;
+	level.startMapvote = &MapvoteStart;
+	level.custom_end_screen = &MapvoteStart; //Note: Working solution but with endgame text
+	//level.custom_intermission = &MapvoteStart; //Note: Working solution but with endgame text and scoreboard open
 }
+
+/*
+
+// propper solution by replacing intermission in scripts\zm\_zm.gsc
+function intermission()
+{
+	level.intermission = true;
+	level notify( "intermission" );
+
+	players = GetPlayers();
+	for( i = 0; i < players.size; i++ )
+	{
+		players[i] SetClientThirdPerson( 0 );
+		players[i] resetFov();
+
+		players[i].health = 100; // This is needed so the player view doesn't get stuck
+		players[i] thread [[level.custom_intermission]]();
+		
+		players[i] StopSounds();
+	}
+
+	MapvoteStart();
+	wait( 5.25 );
+
+	players = GetPlayers();
+	for( i = 0; i < players.size; i++ )
+	{
+		players[i] clientfield::set( "zmbLastStand", 0 );
+	}
+
+	level thread zombie_game_over_death();
+}
+*/
 
 function MapvoteConfigurate()
 {
@@ -140,9 +167,9 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 {
 	self endon("disconnect");
 	level endon("game_ended");
-	//Note: Just for quit testing put level thread MapvoteStart(); here
 	level flag::wait_till("initial_blackscreen_passed");
-	level thread MapvoteStart();
+	//Note: Just for quick testing put level thread MapvoteStart(); here
+	//level thread MapvoteStart();
 	
 	self setblur(0, 0);
 }
@@ -344,7 +371,7 @@ function MapvoteStart()
 	if (!isDefined(level.mapvote_started))
 	{
 		level.mapvote_started = 1;
-		// mapslist = [];
+		mapslist = [];
 		maps_keys = [];
 		maps_keys = strTok(GetDvarString("mv_maps"), " ");
 		mapslist = MapvoteGetRandomMaps(maps_keys); // Remove blacklisted maps
