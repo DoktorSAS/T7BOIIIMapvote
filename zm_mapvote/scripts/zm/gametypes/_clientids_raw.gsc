@@ -44,7 +44,6 @@
 	- 3 and 5 maps support
 	- Credits, sentence and social on bottom left
 	- Simple keyboard and controller button support
-	- Allow to load gametypes
 */
 
 #namespace clientids;
@@ -67,41 +66,48 @@ function init()
 {
 	MapvoteConfigurate();
 	level.startMapvote = &MapvoteStart;
-	level.custom_end_screen = &MapvoteStart; //Note: Working solution but with endgame text
-	//level.custom_intermission = &MapvoteStart; //Note: Working solution but with endgame text and scoreboard open
+	level.custom_end_screen_original = level.custom_end_screen; // Note: Prevent overwrite of existing custom_end_screen
+	level.custom_end_screen = &custom_end_screen; //Note: Working solution but with endgame text
+}
+
+function custom_end_screen()
+{
+	[[level.custom_end_screen_original]]();
+	MapvoteStart();
 }
 
 /*
 
-// propper solution by replacing intermission in scripts\zm\_zm.gsc
-function intermission()
-{
-	level.intermission = true;
-	level notify( "intermission" );
-
-	players = GetPlayers();
-	for( i = 0; i < players.size; i++ )
+	// propper solution by replacing intermission in scripts\zm\_zm.gsc
+	function intermission()
 	{
-		players[i] SetClientThirdPerson( 0 );
-		players[i] resetFov();
+		level.intermission = true;
+		level notify( "intermission" );
 
-		players[i].health = 100; // This is needed so the player view doesn't get stuck
-		players[i] thread [[level.custom_intermission]]();
-		
-		players[i] StopSounds();
+		players = GetPlayers();
+		for( i = 0; i < players.size; i++ )
+		{
+			players[i] SetClientThirdPerson( 0 );
+			players[i] resetFov();
+
+			players[i].health = 100; // This is needed so the player view doesn't get stuck
+			players[i] thread [[level.custom_intermission]]();
+			
+			players[i] StopSounds();
+		}
+
+		MapvoteStart();
+		wait( 5.25 );
+
+		players = GetPlayers();
+		for( i = 0; i < players.size; i++ )
+		{
+			players[i] clientfield::set( "zmbLastStand", 0 );
+		}
+
+		level thread zombie_game_over_death();
 	}
 
-	MapvoteStart();
-	wait( 5.25 );
-
-	players = GetPlayers();
-	for( i = 0; i < players.size; i++ )
-	{
-		players[i] clientfield::set( "zmbLastStand", 0 );
-	}
-
-	level thread zombie_game_over_death();
-}
 */
 
 function MapvoteConfigurate()
@@ -113,19 +119,9 @@ function MapvoteConfigurate()
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
-	// Nota: It is on end game and lock the game in the state but it display a fully white screen
-	// if(!isDefined(level.end_game_video))
-	//{
-	//	level.end_game_video = SpawnStruct();
-	//	level.end_game_video.duration = level.mapvote["time"];
-	// }
-	// else
-	//{
-	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
-	// }
 	SetDvarIfNotInizialized("mv_maps", "zm_zod zm_castle zm_island zm_stalingrad zm_genesis zm_cosmodrome zm_theater zm_cosmodrome zm_theater zm_moon zm_prototype zm_tomb zm_temple zm_factory zm_asylum");
 
-	// PreCache maps images
+	// Precache maps images
 	maps_data = [];
 	maps_data = BuildMapsData();
 
@@ -362,7 +358,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 
 	return mapschoosed;
 }
-// Note: is required for  [[level.onEndGame_stub]](winner);  or [[level.onRoundEndGame_stub]](winner); -> function MapvoteStart(winner)
+
 function MapvoteStart()
 {
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
