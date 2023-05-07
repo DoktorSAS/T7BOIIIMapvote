@@ -17,7 +17,6 @@
 #using scripts\shared\hud_util_shared;
 #using scripts\shared\hud_message_shared;
 #using scripts\shared\hud_shared;
-#using scripts\zm\gametypes\_globallogic;
 
 #insert scripts\shared\shared.gsh;
 
