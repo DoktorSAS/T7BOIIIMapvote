@@ -46,9 +46,9 @@
 	- Simple keyboard and controller button support
 */
 
-#namespace clientids;
+#namespace duplicaterender_mgr;
 
-REGISTER_SYSTEM("clientids", &__init__, undefined)
+REGISTER_SYSTEM("duplicaterender_mgr", &__init__, undefined)
 
 function __init__()
 {
