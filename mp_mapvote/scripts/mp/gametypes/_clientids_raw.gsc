@@ -90,7 +90,7 @@ function MapvoteConfigurate()
 
 	if(GetRealPlayers() < getDvarInt("mv_minplayers")) // End if there is not the minimum number of players
 	{
-		setdvar("sv_maprotationcurrent", "");
+		//setdvar("sv_maprotationcurrent", "");
 		return;
 	}
 
