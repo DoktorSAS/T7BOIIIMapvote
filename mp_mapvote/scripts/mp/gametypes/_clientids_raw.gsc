@@ -938,5 +938,5 @@ function GetRealPlayers()
             numplayers++;
 	}
 
-    return numplayer
+    return numplayers;
 }
