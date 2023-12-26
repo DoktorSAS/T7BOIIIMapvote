@@ -41,7 +41,7 @@
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
 	set mv_gametypes 		"dm;dm.cfg"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
-	set mv_minplayers               4                       // Minimum players that must be on the server for map voting to be activated. 
+	set mv_minplayers               1                      // Minimum players that must be on the server for map voting to be activated. 
 
 	Version: 0.1.0
 	- 3 and 5 maps support
@@ -89,7 +89,10 @@ function MapvoteConfigurate()
 		return;						  // End if the mapvote its not enable
 
 	if(GetRealPlayers() < getDvarInt("mv_minplayers")) // End if there is not the minimum number of players
-        	return;
+	{
+		setdvar("sv_maprotationcurrent", "");
+		return;
+	}
 
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
