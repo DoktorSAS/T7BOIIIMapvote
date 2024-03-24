@@ -41,6 +41,7 @@
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
 	set mv_gametypes 		"dm;dm.cfg"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
+	set mv_minplayers               4                       // Minimum players that must be on the server for map voting to be activated. 
 
 	Version: 0.1.0
 	- 3 and 5 maps support
@@ -83,9 +84,10 @@ function init()
 function MapvoteConfigurate()
 {
 	SetDvarIfNotInizialized("mv_enable", 1);
+	SetDvarIfNotInizialized("mv_minplayers", 4);
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
-
+       	
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
@@ -341,6 +343,9 @@ function MapvoteStart()
 {
 	if (getDvarInt("mv_enable") != 1 || !util::wasLastRound()) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
+
+	if(GetRealPlayers() < getDvarInt("mv_minplayers")) // End if there is not the minimum number of players
+        	return;
 
 	if (!isDefined(level.mapvote_started))
 	{
@@ -615,7 +620,6 @@ function MapvoteSetRotation(mapid, gametype)
 		str = str + " exec " + array[1];
 	}
 	setdvar("sv_maprotationcurrent", str + " map " + mapid);
-	setdvar("sv_maprotation", str + " map " + mapid);
 	level notify("mv_ended");
 }
 
@@ -917,4 +921,16 @@ function ArrayRemoveElement(array, todelete)
 		}
 	}
 	return newarray;
+}
+
+function GetRealPlayers()
+{
+    numplayers = 0;
+    foreach (player in level.players)
+	{
+		if (!player util::is_bot())
+            numplayers++;
+	}
+
+    return numplayers;
 }
