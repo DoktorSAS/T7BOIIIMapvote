@@ -21,8 +21,51 @@
 #insert scripts\shared\shared.gsh;
 
 #precache("material", "white");
-#precache("material", "uie_t7_hud_waypoints_compassping_enemy");
-#precache("material", "compassping_friendlyyelling_mp");
+#precache("statusicon", "uie_t7_hud_waypoints_compassping_enemy");
+#precache("statusicon", "compassping_friendlyyelling_mp");
+
+// Base Maps
+#precache("material", "img_t7_menu_mp_preview_biodome");
+#precache("material", "img_t7_menu_mp_preview_spire");
+#precache("material", "img_t7_menu_mp_preview_sector");
+#precache("material", "img_t7_menu_mp_preview_apartments");
+#precache("material", "img_t7_menu_mp_preview_chinatown");
+#precache("material", "img_t7_menu_mp_preview_veiled");
+#precache("material", "img_t7_menu_mp_preview_havoc");
+#precache("material", "img_t7_menu_mp_preview_ethiopia");
+#precache("material", "img_t7_menu_mp_preview_infection");
+#precache("material", "img_t7_menu_mp_preview_metro");
+#precache("material", "img_t7_menu_mp_preview_redwood");
+#precache("material", "img_t7_menu_mp_preview_stronghold");
+#precache("material", "img_t7_menu_mp_preview_nuketown_x");
+
+// Awakening
+#precache("material", "img_t7_menu_mp_preview_crucible");
+#precache("material", "img_t7_menu_mp_preview_rise");
+#precache("material", "img_t7_menu_mp_preview_skyjacked");
+#precache("material", "img_t7_menu_mp_preview_waterpark");
+
+// Eclipse
+#precache("material", "img_t7_menu_mp_preview_kung_fu");
+#precache("material", "img_t7_menu_mp_preview_conduit");
+#precache("material", "img_t7_menu_mp_preview_aerospace");
+#precache("material", "img_t7_menu_mp_preview_banzai");
+
+// Descent
+#precache("material", "img_t7_menu_mp_preview_shrine");
+#precache("material", "img_t7_menu_mp_preview_cryogen");
+#precache("material", "img_t7_menu_mp_preview_rome");
+#precache("material", "img_t7_menu_mp_preview_arena");
+
+// Salvation
+#precache("material", "img_t7_menu_mp_preview_ruins");
+#precache("material", "img_t7_menu_mp_preview_miniature");
+#precache("material", "img_t7_menu_mp_preview_western");
+#precache("material", "img_t7_menu_mp_preview_city");
+
+// Mapas adicionales
+#precache("material", "img_t7_menu_mp_preview_veiled_heyday");
+#precache("material", "img_t7_menu_mp_preview_redwood_ice");
 
 /*
 	Mod: Mapvote Menu
@@ -58,6 +101,7 @@ function __init__()
 {
 	// this is now handled in code ( not lan )
 	// see s_nextScriptClientId
+
 	level.clientid = 0;
 
 	callback::on_start_gametype(&init);
@@ -68,23 +112,17 @@ function __init__()
 
 function init()
 {
-	// precacheStatusIcon("uie_t7_hud_waypoints_compassping_enemy");
-	// precacheStatusIcon("compassping_friendlyyelling_mp");
-	MapvoteConfigurate();
-	// Note: Don't lock the game on the state but at least get called on endgame
-	// level.onEndGame_sub = level.onEndGame;
-	// level.onEndGame = &MapvoteStart;
-	// Note: Don't get called at all
-	// level.endGameFunction = &MapvoteStart;
-	// level.onRoundEndGame_stub = level.onRoundEndGame;
-	// level.onRoundEndGame = &MapvoteStart;
-	level.startMapvote = &MapvoteStart;
+    BuildMapsData();
+    MapvoteConfigurate();
+    ReapplyCurrentGametypeSettings();
+
+    level.startMapvote = &MapvoteStart;
 }
 
 function MapvoteConfigurate()
 {
 	SetDvarIfNotInizialized("mv_enable", 1);
-	SetDvarIfNotInizialized("mv_minplayers", 4);
+	SetDvarIfNotInizialized("mv_minplayers", 1);
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
        	
@@ -101,7 +139,7 @@ function MapvoteConfigurate()
 	//{
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
 	// }
-	SetDvarIfNotInizialized("mv_maps", "mp_biodome mp_spire mp_sector mp_apartments mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_redwood mp_stronghold mp_nuketown_x mp_shrine mp_ruins mp_cryogen mp_rome mp_crucible mp_kung_fu mp_miniature mp_western mp_conduit mp_rise mp_arena mp_city mp_skyjacked mp_aerospace mp_waterpark mp_banzai mp_veiled_heyday mp_redwood_ice");
+	SetDvarIfNotInizialized("mv_maps", "mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena");
 
 	// PreCache maps images
 	maps_data = [];
@@ -113,14 +151,14 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_extramaps", 1);
 	SetDvarIfNotInizialized("mv_socialname", "Discord");
 	SetDvarIfNotInizialized("mv_sociallink", "Discord.gg/^3xlabs^7");
-	SetDvarIfNotInizialized("mv_sentence", "Thanks for Playing by @DoktorSAS");
+	SetDvarIfNotInizialized("mv_sentence", "Thanks for Playing by @^5DoktorSAS");
 	SetDvarIfNotInizialized("mv_votecolor", "5");
 	SetDvarIfNotInizialized("mv_arrowcolor", "white");
 	SetDvarIfNotInizialized("mv_blur", "3");
 	SetDvarIfNotInizialized("mv_scrollcolor", "cyan");
 	SetDvarIfNotInizialized("mv_selectcolor", "lightgreen");
 	SetDvarIfNotInizialized("mv_backgroundcolor", "grey");
-	SetDvarIfNotInizialized("mv_gametypes", "dm;dm.cfg tdm;tdm.cfg dm;dm.cfg tdm;tdm.cfg sd;sd.cfg sd;sd.cfg");
+	SetDvarIfNotInizialized("mv_gametypes", "koth tdm sd dom"); // Add here more ganetypes
 	setDvarIfNotInizialized("mv_excludedmaps", "");
 
 	// Nota: It is on end game and lock the game in the state but it display a fully white screen
@@ -196,6 +234,7 @@ function IsInizialized(dvar)
 function MapvotePlayerUI()
 {
 	self thread handlePlayerButtons();
+	//self TestWhiteShader();
 	self setblur(getDvarFloat("mv_blur"), 1.5);
 
 	scroll_color = getColor(getDvarString("mv_scrollcolor"));
@@ -205,6 +244,23 @@ function MapvotePlayerUI()
 	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -452, 205, 133, scroll_color, "white", 1, 0);
 	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -452, 205, 133, bg_color, "white", 1, 0);
 	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -452, 205, 133, bg_color, "white", 1, 0);
+    
+    previews = [];
+    previews[0] = self DrawShader( level.mapvote["map1"].image, -220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+    previews[1] = self DrawShader( level.mapvote["map2"].image,    0, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+    previews[2] = self DrawShader( level.mapvote["map3"].image,  220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+
+    if (getDvarInt("mv_extramaps") == 1)
+    {
+        previews[3] = self DrawShader( level.mapvote["map4"].image, -120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+        previews[4] = self DrawShader( level.mapvote["map5"].image,  120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+    }
+
+
+    foreach (preview in previews)
+    {
+        preview.alpha = 0;
+    }
 
 	self thread ClientFixAngle();
 	level waittill("mv_start_animation");
@@ -226,8 +282,30 @@ function MapvotePlayerUI()
 		boxes[1] affectElement("y", 1.2, -50);
 		boxes[2] affectElement("y", 1.2, -50);
 	}
+    
+    for (i = 0; i < previews.size; i++)
+    {
+        if (isDefined(previews[i]))
+        {
+            if (previews.size > 3)
+            {
+                if (i < 3)
+                {
+                    previews[i].y = -116;
+                }
+                else
+                {
+                    previews[i].y = 34;
+                }
+            }
+            else
+            {
+                previews[i].y = -66;
+            }
+        }
+    }
 
-	self thread DestroyBoxes(boxes);
+	self thread DestroyBoxes(boxes, previews);
 	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
 	boxes[0] affectElement("alpha", 0.2, 1);
@@ -238,62 +316,120 @@ function MapvotePlayerUI()
 		boxes[3] affectElement("alpha", 0.2, 1);
 		boxes[4] affectElement("alpha", 0.2, 1);
 	}
-	index = 0;
-	isVoting = 1;
-	while (level.mapvote["time"] > 0 && isVoting)
+	foreach (preview in previews)
 	{
-		command = self util::waittill_any_return("left", "right", "select");
-		if (command == "right")
-		{
-			index++;
-			if (index == boxes.size)
-				index = 0;
-		}
-		else if (command == "left")
-		{
-			index--;
-			if (index < 0)
-				index = boxes.size - 1;
-		}
-
-		if (command == "select")
-		{
-			isVoting = 0;
-		}
-		else
-		{
-			for (i = 0; i < boxes.size; i++)
-			{
-				if (i != index)
-					boxes[i] affectElement("color", 0.2, bg_color);
-				else
-					boxes[i] affectElement("color", 0.2, scroll_color);
-			}
-		}
+	    preview affectElement("alpha", 0.2, 1);
 	}
-	if (!isVoting)
+	index = 0;
+	select_color = GetColor(GetDvarString("mv_selectcolor"));
+
+	while (true)
 	{
-		self.statusicon = "compassping_friendlyyelling_mp"; // Green dot
-		vote = "vote" + (index + 1);
-		level notify(vote);
-		select_color = getColor(GetDvarString("mv_selectcolor"));
-		boxes[index] affectElement("color", 0.2, select_color);
-		level waittill("mv_destroy_hud");
+	    command = self util::waittill_any_return(
+	        "left",
+	        "right",
+	        "select",
+	        "done"
+	    );
+
+	    // La votación ha terminado.
+	    if (command == "done")
+	    {
+	        break;
+	    }
+
+	    // Mover el cursor a la derecha.
+	    if (command == "right")
+	    {
+	        index++;
+
+	        if (index >= boxes.size)
+	        {
+	            index = 0;
+	        }
+	    }
+	    // Mover el cursor a la izquierda.
+	    else if (command == "left")
+	    {
+	        index--;
+
+	        if (index < 0)
+	        {
+	            index = boxes.size - 1;
+	        }
+	    }
+	    // Registrar o cambiar el voto.
+	    else if (command == "select")
+	    {
+	        if (self.mv_vote != index)
+	        {
+	            self.mv_vote = index;
+	            self.statusicon = "compassping_friendlyyelling_mp";
+
+	            vote = "vote" + (index + 1);
+	            level notify("mv_vote_cast");
+	        }
+	    }
+
+	    // Actualizar colores sin perder el voto anterior.
+	    for (i = 0; i < boxes.size; i++)
+	    {
+	        if (i == self.mv_vote)
+	        {
+	            // Verde: voto registrado.
+	            boxes[i] affectElement("color", 0.2, select_color);
+	        }
+	        else if (i == index)
+	        {
+	            // Azul: posición actual del cursor.
+	            boxes[i] affectElement("color", 0.2, scroll_color);
+	        }
+	        else
+	        {
+	            // Color normal: no seleccionado ni votado.
+	            boxes[i] affectElement("color", 0.2, bg_color);
+	        }
+	    }
 	}
 }
 
-function DestroyBoxes(boxes)
+function DestroyBoxes(boxes, previews)
 {
-	level waittill("mv_destroy_hud");
-	foreach (box in boxes)
-	{
-		box affectElement("alpha", 0.5, 0);
-	}
-	wait 0.5;
-	foreach (box in boxes)
-	{
-		box hud::destroyElem();
-	}
+    level waittill("mv_destroy_hud");
+
+    foreach (box in boxes)
+    {
+        if (isDefined(box))
+        {
+            box affectElement("alpha", 0.5, 0);
+        }
+    }
+
+    foreach (preview in previews)
+    {
+        if (isDefined(preview))
+        {
+            preview.alpha = 0;
+        }
+    }
+
+    wait 0.5;
+
+    foreach (box in boxes)
+    {
+        if (isDefined(box))
+        {
+            box hud::destroyElem();
+        }
+    }
+
+    foreach (preview in previews)
+    {
+        if (isDefined(preview))
+        {
+            preview hud::destroyElem();
+        }
+    }
 }
 
 function ClientFixAngle() // TODO: Check if the bug happen also in BO3
@@ -331,7 +467,7 @@ function MapvoteGetRandomMaps(mapsIDs, times) // Select random map from the list
 		index = RandomIntRange(0, mapsIDs.size);
 		map = mapsIDs[index];
 		mapschoosed[i] = map;
-		logPrint("map;" + map + ";index;" + index + "\n");
+		// logPrint("map;" + map + ";index;" + index + "\n");
 		mapsIDs = ArrayRemoveElement(mapsIDs, map);
 		// arrayremovevalue(mapsIDs, map);
 	}
@@ -353,7 +489,6 @@ function MapvoteStart()
 		// mapslist = [];
 		maps_keys = [];
 		maps_keys = strTok(GetDvarString("mv_maps"), " ");
-		mapslist = MapvoteGetRandomMaps(maps_keys); // Remove blacklisted maps
 		times = 3;
 		if (getDvarInt("mv_extramaps") == 1)
 		{
@@ -361,6 +496,7 @@ function MapvoteStart()
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
+		
 		gametypes = [];
 		gametypes = strTok(getDvarString("mv_gametypes"), " ");
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
@@ -371,9 +507,9 @@ function MapvoteStart()
 		level.mapvote["map2"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 		level.mapvote["map3"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 
-		level.mapvote["map1"].gametypeUI = GametypeToName(strTok(level.mapvote["map1"].gametype, ";")[0]);
-		level.mapvote["map2"].gametypeUI = GametypeToName(strTok(level.mapvote["map2"].gametype, ";")[0]);
-		level.mapvote["map3"].gametypeUI = GametypeToName(strTok(level.mapvote["map3"].gametype, ";")[0]);
+		level.mapvote["map1"].gametypeUI = GetGametypeDisplayName(level.mapvote["map1"].gametype);
+		level.mapvote["map2"].gametypeUI = GetGametypeDisplayName(level.mapvote["map2"].gametype);
+		level.mapvote["map3"].gametypeUI = GetGametypeDisplayName(level.mapvote["map3"].gametype);
 
 		if (getDvarInt("mv_extramaps") == 1)
 		{
@@ -381,14 +517,17 @@ function MapvoteStart()
 			level.mapvote["map5"] = level.maps_data[mapschoosed[4]];
 			level.mapvote["map4"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
 			level.mapvote["map5"].gametype = gametypes[RandomIntRange(0, gametypes.size)];
-			level.mapvote["map4"].gametypeUI = GametypeToName(strTok(level.mapvote["map4"].gametype, ";")[0]);
-			level.mapvote["map5"].gametypeUI = GametypeToName(strTok(level.mapvote["map5"].gametype, ";")[0]);
+			level.mapvote["map4"].gametypeUI = GetGametypeDisplayName(level.mapvote["map4"].gametype);
+			level.mapvote["map5"].gametypeUI = GetGametypeDisplayName(level.mapvote["map5"].gametype);
 		}
 
 		foreach (player in level.players)
 		{
-			if (!player util::is_bot())
-				player thread MapvotePlayerUI();
+		    if (!player util::is_bot())
+		    {
+		        player.mv_vote = -1;
+		        player thread MapvotePlayerUI();
+		    }
 		}
 		wait 0.2;
 		level thread MapvoteServerUI();
@@ -401,195 +540,272 @@ function MapvoteStart()
 
 function MapvoteServerUI()
 {
-	mv_arrowcolor = GetColor(getDvarString("mv_arrowcolor"));
-	mv_votecolor = getDvarString("mv_votecolor");
+    mv_arrowcolor = GetColor(getDvarString("mv_arrowcolor"));
+    mv_votecolor = getDvarString("mv_votecolor");
 
-	buttons = level hud::createServerFontString("objective", 2);
-	buttons setText("^3[{+speed_throw}]              ^7Press ^3[{+gostand}] ^7or ^3[{+activate}] ^7to select              ^3[{+attack}]");
-	buttons.hideWhenInMenu = 0;
+    buttons = level hud::createServerFontString("objective", 2);
+    buttons setText("^3[{+speed_throw}]              ^7Press ^3[{+gostand}] ^7or ^3[{+activate}] ^7to vote / change vote              ^3[{+attack}]");
+    buttons.hideWhenInMenu = 0;
 
-	mapsUI = [];
-	mapsUI[0] = spawnStruct();
-	mapsUI[1] = spawnStruct();
-	mapsUI[2] = spawnStruct();
+    mapsUI = [];
+    mapsUI[0] = spawnStruct();
+    mapsUI[1] = spawnStruct();
+    mapsUI[2] = spawnStruct();
 
-	mapsUI[0].mapname = level CreateString(level.mapvote["map1"].mapname + "\n" + level.mapvote["map1"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[1].mapname = level CreateString(level.mapvote["map2"].mapname + "\n" + level.mapvote["map2"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	mapsUI[2].mapname = level CreateString(level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
+    mapsUI[0].mapname = level CreateString( level.mapvote["map1"].mapname + "\n" + level.mapvote["map1"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5 );
+    mapsUI[1].mapname = level CreateString( level.mapvote["map2"].mapname + "\n" + level.mapvote["map2"].gametypeUI, "objective", 1.2, "CENTER", "CENTER",    0, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5 );
+    mapsUI[2].mapname = level CreateString( level.mapvote["map3"].mapname + "\n" + level.mapvote["map3"].gametypeUI, "objective", 1.2, "CENTER", "CENTER",  220, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5 );
 
-	if (getDvarInt("mv_extramaps") == 1)
-	{
-		buttons hud::setPoint("CENTER", "CENTER", 0, 150);
-		mapsUI[3] = spawnStruct();
-		mapsUI[4] = spawnStruct();
+    if (getDvarInt("mv_extramaps") == 1)
+    {
+        buttons hud::setPoint("CENTER", "CENTER", 0, 150);
 
-		mapsUI[3].mapname = level CreateString(level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-		mapsUI[4].mapname = level CreateString(level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", 120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5);
-	}
-	else
-	{
-		buttons hud::setPoint("CENTER", "CENTER", 0, 100);
-	}
+        mapsUI[3] = spawnStruct();
+        mapsUI[4] = spawnStruct();
 
-	level notify("mv_start_animation");
+        mapsUI[3].mapname = level CreateString( level.mapvote["map4"].mapname + "\n" + level.mapvote["map4"].gametypeUI, "objective", 1.2, "CENTER", "CENTER", -120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5 );
+        mapsUI[4].mapname = level CreateString( level.mapvote["map5"].mapname + "\n" + level.mapvote["map5"].gametypeUI, "objective", 1.2, "CENTER", "CENTER",  120, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5 );
+    }
+    else
+    {
+        buttons hud::setPoint("CENTER", "CENTER", 0, 100);
+    }
 
-	for (i = 0; i < mapsUI.size; i++)
-	{
-		map = mapsUI[i];
-		dynamic_position = 0;
-		if (mapsUI.size > 3 && i < 3)
-		{
-			dynamic_position = -50;
-		}
-		else if (mapsUI.size > 3 && i > 2)
-		{
-			dynamic_position = 100;
-		}
-		map.mapname.alpha = 0;
-		map.mapname affectElement("alpha", 1.6, 1);
-		map.mapname.y = -9 + dynamic_position;
-		if (isDefined(map.textbg))
-		{
-			map.textbg.y = 186 + dynamic_position;
-		}
-		//map.image affectElement("y", 1.2, 89 + dynamic_position);
-	}
+    level notify("mv_start_animation");
 
-	wait 1;
-	level notify("mv_start_vote");
+    for (i = 0; i < mapsUI.size; i++)
+    {
+        map = mapsUI[i];
+        dynamic_position = 0;
 
-	mv_sentence = GetDvarString("mv_sentence");
-	mv_socialname = GetDvarString("mv_socialname");
-	mv_sociallink = GetDvarString("mv_sociallink");
-	credits = level hud::createServerFontString("objective", 1.2);
-	credits hud::setPoint("BOTTOM_LEFT", "BOTTOM_LEFT", 15, -70);
-	credits setText(mv_sentence + "\nDeveloped by @^5DoktorSAS ^7\n" + mv_socialname + ": " + mv_sociallink);
-	credits affectElement("alpha", 0.5, 1);
+        if (mapsUI.size > 3 && i < 3)
+        {
+            dynamic_position = -50;
+        }
+        else if (mapsUI.size > 3 && i > 2)
+        {
+            dynamic_position = 100;
+        }
 
-	timer = level hud::createServerFontString("objective", 2);
-	timer hud::setPoint("TOP", "TOP", "CENTER", 30);
-	timer setTimer(level.mapvote["time"]);
-	wait level.mapvote["time"];
-	level notify("mv_destroy_hud");
-	// logPrint("mapvote//mv_ServerUI " + getTime()/1000 + "\n");
+        map.mapname.alpha = 0;
+        map.mapname affectElement("alpha", 1.6, 1);
+        map.mapname.y = -9 + dynamic_position;
 
-	foreach (map in mapsUI)
-	{
-		map.mapname affectElement("alpha", 0.4, 0);
-		if (isDefined(map.textbg))
-		{
-			map.textbg affectElement("alpha", 0.4, 0);
-		}
-		//map.image affectElement("alpha", 0.4, 0);
-	}
+        if (isDefined(map.textbg))
+        {
+            map.textbg.y = 186 + dynamic_position;
+        }
+    }
 
-	credits affectElement("alpha", 0.5, 0);
-	timer affectElement("alpha", 0.5, 0);
+    wait 1;
+    level notify("mv_start_vote");
 
-	buttons affectElement("alpha", 0.4, 0);
+    mv_sentence = GetDvarString("mv_sentence");
+    mv_socialname = GetDvarString("mv_socialname");
+    mv_sociallink = GetDvarString("mv_sociallink");
 
-	foreach (player in level.players)
-	{
-		player notify("done");
-		player setblur(0, 0);
-	}
+    credits = level hud::createServerFontString("objective", 1.2);
+    credits hud::setPoint("BOTTOM_LEFT", "BOTTOM_LEFT", 15, -70);
+
+    credits setText(
+        mv_sentence +
+        "\nDeveloped by @^5DoktorSAS\n" +
+        mv_socialname + ": " + mv_sociallink
+    );
+
+    credits affectElement("alpha", 0.5, 1);
+
+    timer = level hud::createServerTimer("objective", 2);
+    timer hud::setPoint("TOP", "TOP", 0, 30);
+    timer setTimer(level.mapvote["time"]);
+
+    wait level.mapvote["time"];
+
+    // Close the voting state before waking the threads.
+    level.isInVote = 0;
+
+    // Destroy the boxes and images of the players.
+    level notify("mv_destroy_hud");
+
+    // Wake up VoteManager even if no recent vote has arrived.
+    level notify("mv_vote_cast");
+
+    foreach (map in mapsUI)
+    {
+        map.mapname affectElement("alpha", 0.4, 0);
+
+        if (isDefined(map.textbg))
+        {
+            map.textbg affectElement("alpha", 0.4, 0);
+        }
+    }
+
+    credits affectElement("alpha", 0.5, 0);
+    timer affectElement("alpha", 0.5, 0);
+    buttons affectElement("alpha", 0.4, 0);
+
+    foreach (player in level.players)
+    {
+        player notify("done");
+        player setblur(0, 0);
+    }
 }
 
 function VoteManager()
 {
-	votes = [];
-	votes[0] = spawnStruct();
-	votes[1] = spawnStruct();
-	votes[2] = spawnStruct();
-	votes[0].votes = level CreateString(0, "objective", 1.5, "LEFT", "CENTER", -150, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-	votes[0].votes.label = "^" + getDvarInt("mv_votecolor");
-	votes[0].map = level.mapvote["map1"];
+    votes = [];
 
-	votes[1].votes = level CreateString(0, "objective", 1.5, "CENTER", "CENTER", 75, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-	votes[1].votes.label = "^" + getDvarInt("mv_votecolor");
-	votes[1].map = level.mapvote["map2"];
+    votes[0] = spawnStruct();
+    votes[1] = spawnStruct();
+    votes[2] = spawnStruct();
 
-	votes[2].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 290, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-	votes[2].votes.label = "^" + getDvarInt("mv_votecolor");
-	votes[2].map = level.mapvote["map3"];
-	if (getDvarInt("mv_extramaps") == 1)
-	{
-		votes[3] = spawnStruct();
-		votes[4] = spawnStruct();
-		votes[5] = spawnStruct();
-		votes[3].votes = level CreateString(0, "objective", 1.5, "LEFT", "CENTER", -50, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-		votes[3].votes.label = "^" + getDvarInt("mv_votecolor");
-		votes[3].map = level.mapvote["map4"];
+    votes[0].votes = level CreateString( 0, "objective", 1.5, "LEFT", "CENTER", -150, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+    SetVoteColorLabel( votes[0].votes, getDvarInt("mv_votecolor"));
+    votes[0].map = level.mapvote["map1"];
 
-		votes[4].votes = level CreateString(0, "objective", 1.5, "RIGHT", "CENTER", 190, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
-		votes[4].votes.label = "^" + getDvarInt("mv_votecolor");
-		votes[4].map = level.mapvote["map5"];
-	}
+    votes[1].votes = level CreateString( 0, "objective", 1.5, "CENTER", "CENTER", 75, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+    SetVoteColorLabel( votes[1].votes, getDvarInt("mv_votecolor"));
+    votes[1].map = level.mapvote["map2"];
 
-	for (i = 0; i < votes.size; i++)
-	{
-		vote = votes[i];
-		dynamic_position = 0;
-		if (votes.size > 3 && i < 3)
-		{
-			dynamic_position = -50;
-		}
-		else if (votes.size > 3 && i > 2)
-		{
-			dynamic_position = 100;
-		}
-		vote.value = 0;
-		vote.votes.alpha = 0;
-		vote.votes.y = 1 + dynamic_position;
-		vote.votes affectElement("alpha", 1.6, 1);
-	}
+    votes[2].votes = level CreateString( 0, "objective", 1.5, "RIGHT", "CENTER", 290, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+    SetVoteColorLabel( votes[2].votes, getDvarInt("mv_votecolor"));
+    votes[2].map = level.mapvote["map3"];
 
-	isInVote = 1;
-	index = 0;
-	while (isInVote)
-	{
-		notify_value = level util::waittill_any_return("vote1", "vote2", "vote3", "vote4", "vote5", "mv_destroy_hud");
+    if (getDvarInt("mv_extramaps") == 1)
+    {
+        votes[3] = spawnStruct();
+        votes[4] = spawnStruct();
 
-		if (notify_value == "mv_destroy_hud")
-		{
-			isInVote = 0; // Note: Required, seems that the break don't make the while quit.
-			break;
-		}
-		else
-		{
-			switch (notify_value)
-			{
-			case "vote1":
-				index = 0;
-				break;
-			case "vote2":
-				index = 1;
-				break;
-			case "vote3":
-				index = 2;
-				break;
-			case "vote4":
-				index = 3;
-				break;
-			case "vote5":
-				index = 4;
-				break;
-			}
-			votes[index].value++;
-			votes[index].votes setValue(votes[index].value);
-		}
-	}
+        votes[3].votes = level CreateString( 0, "objective", 1.5, "LEFT", "CENTER", -50, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+        SetVoteColorLabel( votes[3].votes, getDvarInt("mv_votecolor"));
+        votes[3].map = level.mapvote["map4"];
 
-	foreach (vote in votes)
-	{
-		vote.votes affectElement("alpha", 0.5, 0);
-	}
+        votes[4].votes = level CreateString( 0, "objective", 1.5, "RIGHT", "CENTER", 190, -325, (1, 1, 1), 1, (0, 0, 0), 0.5, 5, 0);
+        SetVoteColorLabel( votes[4].votes, getDvarInt("mv_votecolor"));
+        votes[4].map = level.mapvote["map5"];
+    }
 
-	winner = MapvoteGetMostVotedMap(votes);
-	map = winner.map;
-	MapvoteSetRotation(map.exec_rotation, map.gametype);
+    // Initialize and position the counters.
+    // This block retrieves the original positioning of the HUD.
+    for (i = 0; i < votes.size; i++)
+    {
+        vote = votes[i];
+        dynamic_position = 0;
 
-	wait 1.2;
+        if (votes.size > 3 && i < 3)
+        {
+            dynamic_position = -50;
+        }
+        else if (votes.size > 3 && i > 2)
+        {
+            dynamic_position = 100;
+        }
+
+        vote.value = 0;
+        vote.votes setValue(0);
+
+        // Place the numbers next to their cards.
+        vote.votes.y = 1 + dynamic_position;
+
+        // Make the counters visible with an animation.
+        vote.votes.alpha = 0;
+        vote.votes.hidden = false;
+        vote.votes affectElement("alpha", 1.6, 1);
+    }
+
+    // Initialize the shared voting state.
+    level.isInVote = 1;
+
+    // Count and update the votes until the time runs out.
+    while (level.isInVote)
+    {
+        level waittill("mv_vote_cast");
+
+        // The voting has ended: exit the loop.
+        if (!level.isInVote)
+        {
+            break;
+        }
+
+        // Recalculate the votes based on the latest election
+        // confirmed by each player.
+        for (i = 0; i < votes.size; i++)
+        {
+            votes[i].value = 0;
+        }
+
+        foreach (player in level.players)
+        {
+            if (isDefined(player.mv_vote))
+            {
+                playerVote = player.mv_vote;
+
+                if (playerVote >= 0 && playerVote < votes.size)
+                {
+                    votes[playerVote].value++;
+                }
+            }
+        }
+
+        // Update the numbers on the screen.
+        for (i = 0; i < votes.size; i++)
+        {
+            votes[i].votes setValue(votes[i].value);
+        }
+    }
+
+    // Final count: includes the last recorded vote.
+    for (i = 0; i < votes.size; i++)
+    {
+        votes[i].value = 0;
+    }
+
+    foreach (player in level.players)
+    {
+        if (isDefined(player.mv_vote))
+        {
+            playerVote = player.mv_vote;
+
+            if (playerVote >= 0 && playerVote < votes.size)
+            {
+                votes[playerVote].value++;
+            }
+        }
+    }
+
+    // Display the final result before removing the HUD.
+    for (i = 0; i < votes.size; i++)
+    {
+        votes[i].votes setValue(votes[i].value);
+    }
+
+    // Desvanecer los contadores.
+    foreach (vote in votes)
+    {
+        if (isDefined(vote.votes))
+        {
+            vote.votes affectElement("alpha", 0.5, 0);
+        }
+    }
+
+    wait 0.55;
+
+    // Destroy the HUD elements for the counters.
+    foreach (vote in votes)
+    {
+        if (isDefined(vote.votes))
+        {
+            vote.votes hud::destroyElem();
+        }
+    }
+
+    // Determine the winner and continue the rotation.
+    winner = MapvoteGetMostVotedMap(votes);
+    map = winner.map;
+
+    MapvoteSetRotation(map.exec_rotation, map.gametype);
+
+    wait 1.2;
 }
 
 function MapvoteGetMostVotedMap(votes)
@@ -609,18 +825,212 @@ function MapvoteGetMostVotedMap(votes)
 
 function MapvoteSetRotation(mapid, gametype)
 {
-	array = strTok(gametype, ";");
-	str = "";
-	if (array.size > 0)
-	{
-		str = "gametype " + array[0];
-	}
-	if (array.size > 1)
-	{
-		str = str + " exec " + array[1];
-	}
-	setdvar("sv_maprotationcurrent", str + " map " + mapid);
-	level notify("mv_ended");
+    mode = GetModeCode(gametype);
+
+    if (mode == "")
+    {
+        logPrint("[MapVote ERROR] Empty gametype; cannot set rotation.\n");
+        return;
+    }
+
+    setDvar("mv_next_gametype", mode);
+
+    ApplyGametypeSettings(mode);
+
+    setDvar("g_gametype", mode);
+
+    // BO3/EZZ BOIII: do not add 'exec sd.cfg' to the rotation.
+    rotation = "gametype " + mode + " map " + mapid;
+
+    setDvar("sv_maprotationcurrent", rotation);
+    setDvar("sv_maprotation", rotation);
+    setDvar("nextmap", "map " + mapid);
+
+    level notify("mv_ended");
+}
+
+function GetGametypeDisplayName(gametype)
+{
+    mode = GetModeCode(gametype);
+    displayName = GametypeToName(mode);
+
+    if (!isDefined(displayName) || tolower(displayName) == "invalid")
+    {
+        // Display the actual identifier so that any mode 
+        // that does not yet have a name configured can be recognized.
+        return toUpper(mode);
+    }
+
+    return displayName;
+}
+
+function GetModeCode(gametype)
+{
+    parts = strTok(gametype, ";");
+    if (parts.size > 0)
+        return tolower(parts[0]);
+    return tolower(gametype);
+}
+
+function ResetGametypeSettings()
+{
+    SetGametypeSetting("timelimit", 0);
+    SetGametypeSetting("scorelimit", 0);
+    SetGametypeSetting("roundScoreLimit", 0);
+    SetGametypeSetting("roundlimit", 0);
+    SetGametypeSetting("roundLimit", 0);
+    SetGametypeSetting("roundwinlimit", 0);
+    SetGametypeSetting("roundWinLimit", 0);
+    SetGametypeSetting("roundswitch", 0);
+    SetGametypeSetting("roundSwitch", 0);
+    SetGametypeSetting("cumulativeRoundScores", 0);
+    SetGametypeSetting("playerLives", 0);
+    SetGametypeSetting("playerNumLives", 0);
+    SetGametypeSetting("teamCount", 0);
+    SetGametypeSetting("playerRespawnDelay", 0);
+    SetGametypeSetting("waverespawndelay", 0);
+    SetGametypeSetting("spectateType", 1);
+    SetGametypeSetting("bombTimer", 0);
+    SetGametypeSetting("plantTime", 0);
+    SetGametypeSetting("defuseTime", 0);
+    SetGametypeSetting("multiBomb", 0);
+    SetGametypeSetting("captureTime", 0);
+    SetGametypeSetting("objectiveSpawnTime", 0);
+    SetGametypeSetting("autoDestroyTime", 0);
+    SetGametypeSetting("randomObjectiveLocations", 0);
+    SetGametypeSetting("scorePerPlayer", 0);
+    SetGametypeSetting("timePausesWhenInZone", 1);
+    SetGametypeSetting("flagCanBeNeutralized", 1);
+    SetGametypeSetting("maxObjectiveEventsPerMinute", 0);
+    SetGametypeSetting("maxPlayerDefensive", 0);
+    SetGametypeSetting("maxPlayerOffensive", 0);
+    SetGametypeSetting("maxPlayerEventsPerMinute", 0);
+    SetGametypeSetting("scoreHeroPowerGainFactor", 1);
+    SetGametypeSetting("scoreHeroPowerTimeFactor", 1);
+    SetGametypeSetting("disableVehicleSpawners", 0);
+    SetGametypeSetting("playerKillsMax", 0);
+    SetGametypeSetting("totalKillsMax", 0);
+    SetGametypeSetting("teamKillScore", 0);
+    SetGametypeSetting("voipDeadChatWithDead", 0);
+    SetGametypeSetting("voipDeadChatWithTeam", 0);
+    SetGametypeSetting("voipDeadHearTeamLiving", 0);
+    SetGametypeSetting("prematchrequirement", 0);
+    SetGametypeSetting("prematchrequirementtime", 0);
+    SetGametypeSetting("prematchperiod", 15);
+    SetGametypeSetting("preroundperiod", 5);
+    SetGametypeSetting("inactivityKick", 120);
+    SetGametypeSetting("allowSpectating", 1);
+    SetGametypeSetting("allowInGameTeamChange", 1);
+    SetGametypeSetting("autoTeamBalance", 1);
+    SetGametypeSetting("allowFinalKillcam", 1);
+    SetGametypeSetting("gameAdvertisementRuleScorePercent", 0);
+    SetGametypeSetting("gameAdvertisementRuleTimeLeft", 0);
+    SetGametypeSetting("gameAdvertisementRuleRound", 0);
+    SetGametypeSetting("gameAdvertisementRuleRoundsWon", 0);
+}
+
+function ApplyGametypeSettings(mode)
+{
+    mode = tolower(mode);
+    ResetGametypeSettings();
+
+    switch (mode)
+    {
+        case "tdm":
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("timelimit", 10);
+            SetGametypeSetting("scorelimit", 100);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("roundlimit", 1);
+            SetGametypeSetting("roundwinlimit", 1);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 15);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 2);
+            break;
+        case "dom":
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("timelimit", 0);
+            SetGametypeSetting("scorelimit", 200);
+            SetGametypeSetting("roundScoreLimit", 100);
+            SetGametypeSetting("roundlimit", 2);
+            SetGametypeSetting("roundwinlimit", 0);
+            SetGametypeSetting("cumulativeRoundScores", 1);
+            SetGametypeSetting("captureTime", 10);
+            SetGametypeSetting("maxObjectiveEventsPerMinute", 3);
+            SetGametypeSetting("maxPlayerDefensive", 128);
+            SetGametypeSetting("maxPlayerOffensive", 128);
+            SetGametypeSetting("maxPlayerEventsPerMinute", 3);
+            SetGametypeSetting("flagCanBeNeutralized", 0);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.616);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.616);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 10);
+            SetGametypeSetting("gameAdvertisementRuleRound", 3);
+            break;
+        case "koth":
+            SetGametypeSetting("kothMode", 1);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("timelimit", 5);
+            SetGametypeSetting("scorelimit", 250);
+            SetGametypeSetting("roundScoreLimit", 0);
+            SetGametypeSetting("roundlimit", 1);
+            SetGametypeSetting("roundwinlimit", 1);
+            SetGametypeSetting("cumulativeRoundScores", 0);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("maxPlayerEventsPerMinute", 8);
+            SetGametypeSetting("autoDestroyTime", 60);
+            SetGametypeSetting("captureTime", 0);
+            SetGametypeSetting("objectiveSpawnTime", 0);
+            SetGametypeSetting("randomObjectiveLocations", 0);
+            SetGametypeSetting("scorePerPlayer", 0);
+            SetGametypeSetting("timePausesWhenInZone", 1);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.45);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.45);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 20);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 1.5);
+            break;
+        case "sd":
+            SetGametypeSetting("preroundperiod", 3);
+            SetGametypeSetting("spectateType", 3);
+            SetGametypeSetting("timelimit", 2.5);
+            SetGametypeSetting("scorelimit", 4);
+            SetGametypeSetting("roundScoreLimit", 0);
+            SetGametypeSetting("roundlimit", 0);
+            SetGametypeSetting("roundwinlimit", 0);
+            SetGametypeSetting("cumulativeRoundScores", 0);
+            SetGametypeSetting("bombTimer", 45);
+            SetGametypeSetting("plantTime", 5);
+            SetGametypeSetting("defuseTime", 5);
+            SetGametypeSetting("multiBomb", 0);
+            SetGametypeSetting("roundswitch", 1);
+            SetGametypeSetting("disableVehicleSpawners", 1);
+            SetGametypeSetting("playerLives", 1);
+            SetGametypeSetting("playerNumLives", 1);
+            SetGametypeSetting("playerKillsMax", 6);
+            SetGametypeSetting("totalKillsMax", 11);
+            SetGametypeSetting("teamKillScore", 4);
+            SetGametypeSetting("voipDeadChatWithDead", 1);
+            SetGametypeSetting("voipDeadChatWithTeam", 0);
+            SetGametypeSetting("voipDeadHearTeamLiving", 0);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.8);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.3);
+            SetGametypeSetting("gameAdvertisementRuleRoundsWon", 3);
+            break;
+    }
+}
+
+function ReapplyCurrentGametypeSettings()
+{
+    mode = tolower(GetDvarString("g_gametype"));
+    if (mode == "")
+        mode = tolower(GetDvarString("mv_next_gametype"));
+
+    if (mode != "")
+    {
+        ResetGametypeSettings();
+        ApplyGametypeSettings(mode);
+    }
 }
 
 function insertMap(key, displayname, image, exec_rotation)
@@ -636,6 +1046,8 @@ function insertMap(key, displayname, image, exec_rotation)
 	level.maps_data[key].exec_rotation = exec_rotation;
 	level.maps_data[key].image = image;
 }
+
+//img_t7_menu_mp_preview_biodome
 
 function BuildMapsData()
 {
@@ -698,63 +1110,75 @@ function BuildMapsData()
 
 function CreateString(input, font, fontScale, align, relative, x, y, color, alpha, glowColor, glowAlpha, sort, isValue)
 {
-	if (self != level)
-	{
-		hud = hud::createFontString(font, fontScale);
-	}
-	else
-	{
-		hud = hud::createServerFontString(font, fontScale);
-	}
+    if (self != level)
+    {
+        hud = hud::createFontString(font, fontScale);
+    }
+    else
+    {
+        hud = hud::createServerFontString(font, fontScale);
+    }
 
-	if (!isDefined(isValue))
-	{
-		hud setText(input);
-	}
-	else
-	{
-		hud setValue(int(input));
-	}
+    if (!isDefined(isValue))
+    {
+        hud setText(input);
+    }
+    else
+    {
+        hud setValue(int(input));
+    }
 
-	hud hud::setPoint(align, relative, x, y);
-	hud.color = color;
-	hud.alpha = alpha;
-	hud.glowColor = glowColor;
-	hud.glowAlpha = glowAlpha;
-	hud.sort = sort;
-	hud.alpha = alpha;
-	hud.archived = 0;
-	hud.hideWhenInMenu = 0;
-	return hud;
+    hud hud::setPoint(align, relative, x, y);
+    hud.color = color;
+    hud.alpha = alpha;
+    hud.glowColor = glowColor;
+    hud.glowAlpha = glowAlpha;
+    hud.sort = sort;
+    hud.archived = 0;
+    hud.hideWhenInMenu = 0;
+
+    return hud;
 }
+
 function DrawShader(shader, x, y, width, height, color, alpha, sort, align, relative, isLevel)
 {
-	if (isDefined(isLevel))
-		hud = newhudelem();
-	else
-		hud = newclienthudelem(self);
-	hud.elemtype = "icon";
-	hud.color = color;
-	hud.alpha = 1;
-	hud.sort = sort;
-	hud.children = [];
-	if (isDefined(align))
-		hud.align = align;
-	if (isDefined(relative))
-		hud.relative = relative;
-	hud hud::setparent(level.uiparent);
-	hud.x = x;
-	hud.y = y;
-	hud setshader(shader, width, height);
-	hud.hideWhenInMenu = 0;
-	hud.archived = 0;
-	return hud;
+    if (isDefined(isLevel))
+        hud = NewHudElem();
+    else
+        hud = NewClientHudElem(self);
+
+    hud.elemType = "icon";
+    hud.x = x;
+    hud.y = y;
+    hud.width = width;
+    hud.height = height;
+    hud.xOffset = 0;
+    hud.yOffset = 0;
+
+    hud.color = color;
+    hud.alpha = alpha;
+    hud.sort = sort;
+    hud.children = [];
+    hud.foreground = true;
+
+    hud hud::setParent(level.uiParent);
+
+    if (isDefined(align) && isDefined(relative))
+        hud hud::setPoint(align, relative, x, y);
+
+    hud.hidden = false;
+    hud.archived = false;
+    hud.hideWhenInMenu = false;
+
+    hud SetShader(shader, width, height);
+
+    return hud;
 }
 
 function CreateRectangle(align, relative, x, y, width, height, color, shader, sort, alpha)
 {
 	uiElement = newClientHudElem(self);
-	uiElement.elemType = "bar";
+	uiElement.elemType = "icon";
 	uiElement.width = width;
 	uiElement.height = height;
 	uiElement.align = align;
@@ -806,14 +1230,14 @@ function GetColor(color)
 
 	case "lightblue":
 	case "light blue":
-		return (0.152, 0329, 0.929);
+		return (0.152, 0.329, 0.929);
 
 	case "lightgreen":
 	case "light green":
 		return (0.09, 1, 0.09);
 
 	case "orange":
-		return (1, 0662, 0.035);
+		return (1, 0.662, 0.035);
 
 	case "yellow":
 		return (0.968, 0.992, 0.043);
@@ -829,20 +1253,74 @@ function GetColor(color)
 	}
 }
 
+function SetVoteColorLabel(hud, colorIndex)
+{
+    switch (colorIndex)
+    {
+        case 0:
+            hud.label = &"^0";
+            break;
+
+        case 1:
+            hud.label = &"^1";
+            break;
+
+        case 2:
+            hud.label = &"^2";
+            break;
+
+        case 3:
+            hud.label = &"^3";
+            break;
+
+        case 4:
+            hud.label = &"^4";
+            break;
+
+        case 5:
+            hud.label = &"^5";
+            break;
+
+        case 6:
+            hud.label = &"^6";
+            break;
+
+        case 7:
+            hud.label = &"^7";
+            break;
+
+        case 8:
+            hud.label = &"^8";
+            break;
+
+        case 9:
+            hud.label = &"^9";
+            break;
+
+        default:
+            hud.label = &"^7";
+            break;
+    }
+}
+
 function affectElement(type, time, value)
 {
-	if (type == "x" || type == "y")
-		self moveOverTime(time);
-	else
-		self fadeOverTime(time);
-	if (type == "x")
-		self.x = value;
-	if (type == "y")
-		self.y = value;
-	if (type == "alpha")
-		self.alpha = value;
-	if (type == "color")
-		self.color = value;
+    if (type == "x" || type == "y")
+    {
+        self moveOverTime(time);
+    }
+    else
+    {
+        self fadeOverTime(time);
+    }
+    if (type == "x")
+        self.x = value;
+    if (type == "y")
+        self.y = value;
+    if (type == "alpha")
+        self.alpha = value;
+    if (type == "color")
+        self.color = value;
 }
 
 function GametypeToName(gametype)
