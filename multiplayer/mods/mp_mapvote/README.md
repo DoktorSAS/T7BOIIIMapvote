@@ -1,4 +1,4 @@
-# Multiplayer MapVote â€” Map Preview Mod
+# Multiplayer MapVote — Map Preview Mod
 
 This optional client mod adds map preview images to the Black Ops III Multiplayer MapVote interface.
 
