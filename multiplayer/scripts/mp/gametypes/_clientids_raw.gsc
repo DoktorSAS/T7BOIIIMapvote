@@ -147,7 +147,9 @@ function MapvoteConfigurate()
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
 	// }
 	SetDvarIfNotInizialized("mv_maps", "mp_nuketown_x mp_skyjacked mp_stronghold mp_redwood mp_sector");
-    // mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena
+
+    /* Here all maps: mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc 
+       mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena */
 
 	// PreCache maps images
 	maps_data = [];
@@ -158,7 +160,7 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_socials", 1);
 	SetDvarIfNotInizialized("mv_extramaps", 1);
 	SetDvarIfNotInizialized("mv_socialname", "Discord");
-	SetDvarIfNotInizialized("mv_sociallink", "^7discord.gg/^5ZR8bBDfjK8");
+	SetDvarIfNotInizialized("mv_sociallink", "^7discord.gg/xlabs");
 	SetDvarIfNotInizialized("mv_sentence", "Thanks for playing");
 	SetDvarIfNotInizialized("mv_votecolor", "5");
 	SetDvarIfNotInizialized("mv_arrowcolor", "white");
