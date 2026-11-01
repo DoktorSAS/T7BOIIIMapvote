@@ -39,13 +39,13 @@
 #precache("material", "img_t7_menu_mp_preview_stronghold");
 #precache("material", "img_t7_menu_mp_preview_nuketown_x");
 
-// Awakening
+// Awakening DLC
 #precache("material", "img_t7_menu_mp_preview_crucible");
 #precache("material", "img_t7_menu_mp_preview_rise");
 #precache("material", "img_t7_menu_mp_preview_skyjacked");
 #precache("material", "img_t7_menu_mp_preview_waterpark");
 
-// Eclipse
+// Eclipse DLC
 #precache("material", "img_t7_menu_mp_preview_kung_fu");
 #precache("material", "img_t7_menu_mp_preview_conduit");
 #precache("material", "img_t7_menu_mp_preview_aerospace");
@@ -57,13 +57,13 @@
 #precache("material", "img_t7_menu_mp_preview_rome");
 #precache("material", "img_t7_menu_mp_preview_arena");
 
-// Salvation
+// Salvation DLC
 #precache("material", "img_t7_menu_mp_preview_ruins");
 #precache("material", "img_t7_menu_mp_preview_miniature");
 #precache("material", "img_t7_menu_mp_preview_western");
 #precache("material", "img_t7_menu_mp_preview_city");
 
-// Mapas adicionales
+// Additional Maps
 #precache("material", "img_t7_menu_mp_preview_veiled_heyday");
 #precache("material", "img_t7_menu_mp_preview_redwood_ice");
 
@@ -83,9 +83,9 @@
 	set mv_selectcolor 		"lighgreen"				// RGB Color when map get voted
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
-	set mv_gametypes 		"tdm dom koth sd"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
-	set mv_minplayers               1                       // Minimum players that must be on the server for map voting to be activated. 
-
+	set mv_gametypes 		"tdm dom koth sd"       // This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
+	set mv_minplayers       1                       // Minimum players that must be on the server for map voting to be activated. 
+    set mv_previews         0                       // Allow to display map previews (mod supported needed)
     
     Version: 0.1.0
 	- 3 and 5 maps support
@@ -94,10 +94,10 @@
 	- Allow to load gametypes
 
 	Version: v1.0.0 by luismrntezz
-	- A mod for image loading was added
-	- The vote change was added
-	- FastDL support included
-	- A rule management system via GSC was added for the gametypes
+	- Added map preview images through mod support
+	- Allow to change vote
+	- Included FastDL support 
+	- A rule management system via GSC was added for the gametypes (TO REVIEW)
 */
 
 #namespace mapvote;
@@ -119,7 +119,6 @@ function __init__()
 
 function init()
 {
-    BuildMapsData();
     MapvoteConfigurate();
     ReapplyCurrentGametypeSettings();
 
@@ -129,11 +128,10 @@ function init()
 function MapvoteConfigurate()
 {
 	SetDvarIfNotInizialized("mv_enable", 1);
-	SetDvarIfNotInizialized("mv_minplayers", 1);
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
-       	
-	level.mapvote = [];
+
+    level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
 	// Note: It is on end game and lock the game in the state but it display a fully white screen
@@ -152,8 +150,7 @@ function MapvoteConfigurate()
        mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena */
 
 	// PreCache maps images
-	maps_data = [];
-	maps_data = BuildMapsData();
+	BuildMapsData();
 
 	// Setting default values if needed
 	SetDvarIfNotInizialized("mv_credits", 1);
@@ -170,6 +167,8 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_backgroundcolor", "grey");
 	SetDvarIfNotInizialized("mv_gametypes", "tdm dom koth sd"); // Add the ones you want to appear
 	setDvarIfNotInizialized("mv_excludedmaps", "");
+    SetDvarIfNotInizialized("mv_minplayers", 1);
+    SetDvarIfNotInizialized("mv_previews", 0);
 
 	// Note: It is on end game and lock the game in the state but it display a fully white screen
 	// level waittill("sfade");
@@ -207,21 +206,21 @@ function handlePlayerButtons()
 		if (self AdsButtonPressed())
 		{
 			self notify("right");
-			wait 0.2;
+			wait 0.05;
 		}
 
 		if (self AttackButtonPressed())
 		{
 			self notify("left");
-			wait 0.2;
+			wait 0.05;
 		}
 
 		if (self UseButtonPressed() || self JumpButtonPressed() || self ReloadButtonPressed())
 		{
 			self notify("select");
-			wait 0.2;
+			wait 0.05;
 		}
-		wait 0.02;
+		wait 0.05;
 	}
 }
 
@@ -243,9 +242,8 @@ function IsInizialized(dvar)
 // mv_client.gsc
 function MapvotePlayerUI()
 {
-	self thread handlePlayerButtons();
+    self setblur(getDvarFloat("mv_blur"), 1.5);
 	//self TestWhiteShader();
-	self setblur(getDvarFloat("mv_blur"), 1.5);
 
 	scroll_color = getColor(getDvarString("mv_scrollcolor"));
 	bg_color = getColor(getDvarString("mv_backgroundcolor"));
@@ -256,20 +254,23 @@ function MapvotePlayerUI()
 	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -452, 205, 133, bg_color, "white", 1, 0);
     
     previews = [];
-    previews[0] = self DrawShader( level.mapvote["map1"].image, -220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
-    previews[1] = self DrawShader( level.mapvote["map2"].image,    0, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
-    previews[2] = self DrawShader( level.mapvote["map3"].image,  220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
-
-    if (getDvarInt("mv_extramaps") == 1)
+    if(getDvarInt("mv_previews") == 1)
     {
-        previews[3] = self DrawShader( level.mapvote["map4"].image, -120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
-        previews[4] = self DrawShader( level.mapvote["map5"].image,  120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
-    }
+        previews[0] = self DrawShader( level.mapvote["map1"].image, -220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+        previews[1] = self DrawShader( level.mapvote["map2"].image,    0, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+        previews[2] = self DrawShader( level.mapvote["map3"].image,  220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
 
+        if (getDvarInt("mv_extramaps") == 1)
+        {
+            previews[3] = self DrawShader( level.mapvote["map4"].image, -120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+            previews[4] = self DrawShader( level.mapvote["map5"].image,  120, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
+        }
 
-    foreach (preview in previews)
-    {
-        preview.alpha = 0;
+    
+        foreach (preview in previews)
+        {
+            preview.alpha = 0;
+        }
     }
 
 	self thread ClientFixAngle();
@@ -293,55 +294,57 @@ function MapvotePlayerUI()
 		boxes[2] affectElement("y", 1.2, -50);
 	}
     
-    for (i = 0; i < previews.size; i++)
+    if(getDvarInt("mv_previews") == 1)
     {
-        if (isDefined(previews[i]))
+        // TODO: Instead of setting y in a for loop its better use affectElement instead
+        for (i = 0; i < previews.size; i++)
         {
-            if (previews.size > 3)
+            if (isDefined(previews[i]))
             {
-                if (i < 3)
+                if (previews.size > 3)
                 {
-                    previews[i].y = -116;
+                    if (i < 3)
+                    {
+                        previews[i].y = -116;
+                    }
+                    else
+                    {
+                        previews[i].y = 34;
+                    }
                 }
                 else
                 {
-                    previews[i].y = 34;
+                    previews[i].y = -66;
                 }
-            }
-            else
-            {
-                previews[i].y = -66;
             }
         }
     }
 
 	self thread DestroyBoxes(boxes, previews);
+    self thread handlePlayerButtons();
 	// self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
 
-	boxes[0] affectElement("alpha", 0.2, 1);
-	boxes[1] affectElement("alpha", 0.2, 1);
-	boxes[2] affectElement("alpha", 0.2, 1);
-	if (boxes.size > 3)
-	{
-		boxes[3] affectElement("alpha", 0.2, 1);
-		boxes[4] affectElement("alpha", 0.2, 1);
-	}
-	foreach (preview in previews)
-	{
-	    preview affectElement("alpha", 0.2, 1);
-	}
+    foreach (box in boxes)
+    {
+        box affectElement("alpha", 0.2, 1);
+    }
+
+    if(getDvarInt("mv_previews") == 1)
+    {
+        foreach (preview in previews)
+        {
+            preview affectElement("alpha", 0.2, 1);
+        }
+    }
+	
 	index = 0;
+    previuesindex = -1;
 	select_color = GetColor(GetDvarString("mv_selectcolor"));
 
 	while (true)
 	{
-	    command = self util::waittill_any_return(
-	        "left",
-	        "right",
-	        "select",
-	        "done"
-	    );
+	    command = self util::waittill_any_return("left", "right", "select", "done");
 
 	    // Voting has ended.
 	    if (command == "done")
@@ -372,35 +375,31 @@ function MapvotePlayerUI()
 	    // Cast or change the vote.
 	    else if (command == "select")
 	    {
-	        if (self.mv_vote != index)
+	        if (previuesindex != index)
 	        {
-	            self.mv_vote = index;
-	            // self.statusicon = "compassping_friendlyyelling_mp";
+                // self.statusicon = "compassping_friendlyyelling_mp";
+                if (previuesindex >= 0) // This section is to remove the vote on the previues voted map
+                {
+                    boxes[previuesindex] affectElement("color", 0.2, bg_color);
+                    vote = "vote" + (index + 1);
+	                level notify("mv_vote_cast");
+                }
 
-	            vote = "vote" + (index + 1);
-	            level notify("mv_vote_cast");
+                wait 0.05;
+                previuesindex = index;
+                boxes[index] affectElement("color", 0.2, select_color);
 	        }
 	    }
-
-	    // Update colors while preserving the confirmed vote.
-	    for (i = 0; i < boxes.size; i++)
-	    {
-	        if (i == self.mv_vote)
-	        {
-	            // Green: confirmed vote.
-	            boxes[i] affectElement("color", 0.2, select_color);
-	        }
-	        else if (i == index)
-	        {
-	            // Blue: current cursor position.
-	            boxes[i] affectElement("color", 0.2, scroll_color);
-	        }
-	        else
-	        {
-	            // Default color: neither selected nor voted for.
-	            boxes[i] affectElement("color", 0.2, bg_color);
-	        }
-	    }
+        else
+        {
+			for (i = 0; i < boxes.size; i++)
+			{
+				if (i != index)
+					boxes[i] affectElement("color", 0.2, bg_color);
+				else
+					boxes[i] affectElement("color", 0.2, scroll_color);
+			}
+		}
 	}
 }
 
@@ -416,11 +415,14 @@ function DestroyBoxes(boxes, previews)
         }
     }
 
-    foreach (preview in previews)
+    if(getDvarInt("mp_previews") == 1)
     {
-        if (isDefined(preview))
+        foreach (preview in previews)
         {
-            preview.alpha = 0;
+            if (isDefined(preview))
+            {
+                preview.alpha = 0;
+            }
         }
     }
 
@@ -433,12 +435,14 @@ function DestroyBoxes(boxes, previews)
             box hud::destroyElem();
         }
     }
-
-    foreach (preview in previews)
+    if(getDvarInt("mp_previews") == 1)
     {
-        if (isDefined(preview))
+         oreach (preview in previews)
         {
-            preview hud::destroyElem();
+            if (isDefined(preview))
+            {
+                preview hud::destroyElem();
+            }
         }
     }
 }
@@ -1378,7 +1382,10 @@ function insertMap(key, displayname, image, exec_rotation)
 	level.maps_data[key] = SpawnStruct();
 	level.maps_data[key].mapname = displayname;
 	level.maps_data[key].exec_rotation = exec_rotation;
-	level.maps_data[key].image = image;
+    if(getDvarInt("mv_previews") == 1)
+    {
+        level.maps_data[key].image = image;
+    }
 }
 
 function BuildMapsData()

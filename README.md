@@ -1,7 +1,10 @@
-# [BOIII](https://boiii.re/): Black ops III Mapvote
-Developed by [@DoktorSAS](https://twitter.com/DoktorSAS)
+<div id="header" align="center">
+  <h1>Call of Duty: Black ops III mapvote</h1>
 
-This project is a project that started in March 2020. The script allows players to vote for the next map or/and mode to be played in the next game.
+  [![Build Badge](https://img.shields.io/badge/Developed_by-DoktorSAS_&_luismrtnezz-brightgreen?style=for-the-badge&logo=x)](https://x.com/DoktorSAS)
+  [![License](https://img.shields.io/badge/LICENSE-GPL--3.0-blue?style=for-the-badge&logo=appveyor)](LICENSE)
+
+</div>
 
 ## Support
 - **Multiplayer** *(Call of Duty: Black Ops III Multiplayer)* `PC`

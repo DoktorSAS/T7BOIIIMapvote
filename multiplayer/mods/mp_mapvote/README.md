@@ -1,4 +1,4 @@
-# Multiplayer MapVote — Map Preview Mod
+# Multiplayer MapVote - Map Preview Mod
 
 This optional client mod adds map preview images to the Black Ops III Multiplayer MapVote interface. The server-side MapVote logic can be used without the preview mod. Servers that want to display the custom map images must make the client mod available to their players.
 
@@ -8,10 +8,10 @@ The compiled Mod Tools files are not duplicated in this repository. The source p
 
 ## Repository contents
 
-- `source_data/mapvote_ui.gdt` — APE definitions for the custom image assets.
-- `texture_assets/mapvote_ui/mp` — Source PNG images for the map previews.
-- `mods/mapvote_ui/zone_source/mp_mod.zone` — Zone definition for the Multiplayer client mod.
-- `mods/mapvote_ui/scripts/mp/gametypes/_mv_material_precache.gsc` — Script that precaches the custom preview materials.
+- `source_data/mapvote_ui.gdt` - APE definitions for the custom image assets.
+- `texture_assets/mapvote_ui/mp` - Source PNG images for the map previews.
+- `mods/mapvote_ui/zone_source/mp_mod.zone` - Zone definition for the Multiplayer client mod.
+- `mods/mapvote_ui/scripts/mp/gametypes/_mv_material_precache.gsc` - Script that precaches the custom preview materials.
 
 The `mods/mapvote_ui/` directory is the Mod Tools source project.
 
