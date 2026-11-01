@@ -70,7 +70,7 @@
 /*
 	Mod: Mapvote Menu
 	Developed by DoktorSAS
-	Version: v0.1.0
+	Version: v1.0.0
 	Config:
 	set mv_enable			1 						// Enable/Disable the mapvote
 	set mv_maps				""						// Lits of maps that can be voted on the mapvote, leave empty for all maps
@@ -83,14 +83,21 @@
 	set mv_selectcolor 		"lighgreen"				// RGB Color when map get voted
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
-	set mv_gametypes 		"dm;dm.cfg"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
-	set mv_minplayers               4                       // Minimum players that must be on the server for map voting to be activated. 
+	set mv_gametypes 		"tdm dom koth sd"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
+	set mv_minplayers               1                       // Minimum players that must be on the server for map voting to be activated. 
 
-	Version: 0.1.0
+    
+    Version: 0.1.0
 	- 3 and 5 maps support
 	- Credits, sentence and social on bottom left
 	- Simple keyboard and controller button support
 	- Allow to load gametypes
+
+	Version: v1.0.0 by luismrntezz
+	- A mod for image loading was added
+	- The vote change was added
+	- FastDL support included
+	- A rule management system via GSC was added for the gametypes
 */
 
 #namespace mapvote;
@@ -129,7 +136,7 @@ function MapvoteConfigurate()
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
-	// Nota: It is on end game and lock the game in the state but it display a fully white screen
+	// Note: It is on end game and lock the game in the state but it display a fully white screen
 	// if(!isDefined(level.end_game_video))
 	//{
 	//	level.end_game_video = SpawnStruct();
@@ -139,7 +146,10 @@ function MapvoteConfigurate()
 	//{
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
 	// }
-	SetDvarIfNotInizialized("mv_maps", "mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena");
+	SetDvarIfNotInizialized("mv_maps", "mp_nuketown_x mp_skyjacked mp_stronghold mp_redwood mp_sector");
+
+    /* Here all maps: mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc 
+       mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena */
 
 	// PreCache maps images
 	maps_data = [];
@@ -150,18 +160,18 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_socials", 1);
 	SetDvarIfNotInizialized("mv_extramaps", 1);
 	SetDvarIfNotInizialized("mv_socialname", "Discord");
-	SetDvarIfNotInizialized("mv_sociallink", "Discord.gg/^3xlabs^7");
-	SetDvarIfNotInizialized("mv_sentence", "Thanks for Playing by @^5DoktorSAS");
+	SetDvarIfNotInizialized("mv_sociallink", "^7discord.gg/xlabs");
+	SetDvarIfNotInizialized("mv_sentence", "Thanks for playing");
 	SetDvarIfNotInizialized("mv_votecolor", "5");
 	SetDvarIfNotInizialized("mv_arrowcolor", "white");
 	SetDvarIfNotInizialized("mv_blur", "3");
 	SetDvarIfNotInizialized("mv_scrollcolor", "cyan");
 	SetDvarIfNotInizialized("mv_selectcolor", "lightgreen");
 	SetDvarIfNotInizialized("mv_backgroundcolor", "grey");
-	SetDvarIfNotInizialized("mv_gametypes", "koth tdm sd dom"); // Add here more ganetypes
+	SetDvarIfNotInizialized("mv_gametypes", "tdm dom koth sd"); // Add the ones you want to appear
 	setDvarIfNotInizialized("mv_excludedmaps", "");
 
-	// Nota: It is on end game and lock the game in the state but it display a fully white screen
+	// Note: It is on end game and lock the game in the state but it display a fully white screen
 	// level waittill("sfade");
 	// level thread MapvoteStart();
 }
@@ -306,8 +316,9 @@ function MapvotePlayerUI()
     }
 
 	self thread DestroyBoxes(boxes, previews);
-	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
+	// self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
+
 	boxes[0] affectElement("alpha", 0.2, 1);
 	boxes[1] affectElement("alpha", 0.2, 1);
 	boxes[2] affectElement("alpha", 0.2, 1);
@@ -332,13 +343,13 @@ function MapvotePlayerUI()
 	        "done"
 	    );
 
-	    // La votación ha terminado.
+	    // Voting has ended.
 	    if (command == "done")
 	    {
 	        break;
 	    }
 
-	    // Mover el cursor a la derecha.
+	    // Move the cursor to the right.
 	    if (command == "right")
 	    {
 	        index++;
@@ -348,7 +359,7 @@ function MapvotePlayerUI()
 	            index = 0;
 	        }
 	    }
-	    // Mover el cursor a la izquierda.
+	    // Move the cursor to the left.
 	    else if (command == "left")
 	    {
 	        index--;
@@ -358,35 +369,35 @@ function MapvotePlayerUI()
 	            index = boxes.size - 1;
 	        }
 	    }
-	    // Registrar o cambiar el voto.
+	    // Cast or change the vote.
 	    else if (command == "select")
 	    {
 	        if (self.mv_vote != index)
 	        {
 	            self.mv_vote = index;
-	            self.statusicon = "compassping_friendlyyelling_mp";
+	            // self.statusicon = "compassping_friendlyyelling_mp";
 
 	            vote = "vote" + (index + 1);
 	            level notify("mv_vote_cast");
 	        }
 	    }
 
-	    // Actualizar colores sin perder el voto anterior.
+	    // Update colors while preserving the confirmed vote.
 	    for (i = 0; i < boxes.size; i++)
 	    {
 	        if (i == self.mv_vote)
 	        {
-	            // Verde: voto registrado.
+	            // Green: confirmed vote.
 	            boxes[i] affectElement("color", 0.2, select_color);
 	        }
 	        else if (i == index)
 	        {
-	            // Azul: posición actual del cursor.
+	            // Blue: current cursor position.
 	            boxes[i] affectElement("color", 0.2, scroll_color);
 	        }
 	        else
 	        {
-	            // Color normal: no seleccionado ni votado.
+	            // Default color: neither selected nor voted for.
 	            boxes[i] affectElement("color", 0.2, bg_color);
 	        }
 	    }
@@ -598,6 +609,7 @@ function MapvoteServerUI()
     }
 
     wait 1;
+
     level notify("mv_start_vote");
 
     mv_sentence = GetDvarString("mv_sentence");
@@ -609,7 +621,7 @@ function MapvoteServerUI()
 
     credits setText(
         mv_sentence +
-        "\nDeveloped by @^5DoktorSAS\n" +
+        "\n^7Developed by @^5DoktorSAS\n" +
         mv_socialname + ": " + mv_sociallink
     );
 
@@ -779,7 +791,7 @@ function VoteManager()
         votes[i].votes setValue(votes[i].value);
     }
 
-    // Desvanecer los contadores.
+    // Fade out the vote counters.
     foreach (vote in votes)
     {
         if (isDefined(vote.votes))
@@ -826,28 +838,31 @@ function MapvoteGetMostVotedMap(votes)
 function MapvoteSetRotation(mapid, gametype)
 {
     mode = GetModeCode(gametype);
+    cfg = GetModeCfg(gametype);
 
-    if (mode == "")
-    {
-        logPrint("[MapVote ERROR] Empty gametype; cannot set rotation.\n");
-        return;
+    if (mode != "") {
+        setDvar("mv_next_gametype", mode);
+        ResetGametypeSettings();
+        ApplyGametypeSettings(mode);
+        setDvar("g_gametype", mode);
     }
 
-    setDvar("mv_next_gametype", mode);
-
-    ApplyGametypeSettings(mode);
-
-    setDvar("g_gametype", mode);
-
-    // BO3/EZZ BOIII: do not add 'exec sd.cfg' to the rotation.
-    rotation = "gametype " + mode + " map " + mapid;
+    rotation = "gametype " + mode;
+    if (cfg != "") {
+        rotation = rotation + " exec " + cfg;
+    }
+    rotation = rotation + " map " + mapid;
 
     setDvar("sv_maprotationcurrent", rotation);
     setDvar("sv_maprotation", rotation);
     setDvar("nextmap", "map " + mapid);
 
     level notify("mv_ended");
+    
+    // We force the immediate loading of the winning level.
+    ExitLevel(false); 
 }
+
 
 function GetGametypeDisplayName(gametype)
 {
@@ -872,63 +887,142 @@ function GetModeCode(gametype)
     return tolower(gametype);
 }
 
+function GetModeCfg(gametype)
+{
+    parts = strTok(gametype, ";");
+    if (parts.size > 1)
+        return parts[1];
+    return "";
+}
+
+
+//Cleaning up rules to avoid conflicts
 function ResetGametypeSettings()
 {
+    // === BASICS & TIMINGS ===
     SetGametypeSetting("timelimit", 0);
     SetGametypeSetting("scorelimit", 0);
     SetGametypeSetting("roundScoreLimit", 0);
     SetGametypeSetting("roundlimit", 0);
-    SetGametypeSetting("roundLimit", 0);
+    SetGametypeSetting("roundLimit", 0); // Capital letter, just in case
     SetGametypeSetting("roundwinlimit", 0);
-    SetGametypeSetting("roundWinLimit", 0);
+    SetGametypeSetting("roundWinLimit", 0); // Capital letter, just in case
     SetGametypeSetting("roundswitch", 0);
-    SetGametypeSetting("roundSwitch", 0);
+    SetGametypeSetting("roundSwitch", 0); // Capital letter, just in case
     SetGametypeSetting("cumulativeRoundScores", 0);
-    SetGametypeSetting("playerLives", 0);
-    SetGametypeSetting("playerNumLives", 0);
     SetGametypeSetting("teamCount", 0);
-    SetGametypeSetting("playerRespawnDelay", 0);
-    SetGametypeSetting("waverespawndelay", 0);
-    SetGametypeSetting("spectateType", 1);
-    SetGametypeSetting("bombTimer", 0);
-    SetGametypeSetting("plantTime", 0);
-    SetGametypeSetting("defuseTime", 0);
-    SetGametypeSetting("multiBomb", 0);
-    SetGametypeSetting("captureTime", 0);
-    SetGametypeSetting("objectiveSpawnTime", 0);
-    SetGametypeSetting("autoDestroyTime", 0);
-    SetGametypeSetting("randomObjectiveLocations", 0);
-    SetGametypeSetting("scorePerPlayer", 0);
-    SetGametypeSetting("timePausesWhenInZone", 1);
-    SetGametypeSetting("flagCanBeNeutralized", 1);
-    SetGametypeSetting("maxObjectiveEventsPerMinute", 0);
-    SetGametypeSetting("maxPlayerDefensive", 0);
-    SetGametypeSetting("maxPlayerOffensive", 0);
-    SetGametypeSetting("maxPlayerEventsPerMinute", 0);
-    SetGametypeSetting("scoreHeroPowerGainFactor", 1);
-    SetGametypeSetting("scoreHeroPowerTimeFactor", 1);
-    SetGametypeSetting("disableVehicleSpawners", 0);
-    SetGametypeSetting("playerKillsMax", 0);
-    SetGametypeSetting("totalKillsMax", 0);
-    SetGametypeSetting("teamKillScore", 0);
-    SetGametypeSetting("voipDeadChatWithDead", 0);
-    SetGametypeSetting("voipDeadChatWithTeam", 0);
-    SetGametypeSetting("voipDeadHearTeamLiving", 0);
     SetGametypeSetting("prematchrequirement", 0);
     SetGametypeSetting("prematchrequirementtime", 0);
     SetGametypeSetting("prematchperiod", 15);
     SetGametypeSetting("preroundperiod", 5);
     SetGametypeSetting("inactivityKick", 120);
+
+    // === LIVES Y SPAWNS ===
+    SetGametypeSetting("playerLives", 0);
+    SetGametypeSetting("playerNumLives", 0);
+    SetGametypeSetting("playerRespawnDelay", 0);
+    SetGametypeSetting("waverespawndelay", 0);
+    SetGametypeSetting("disableTacInsert", 0);
+    SetGametypeSetting("spawntraptriggertime", 0);
+    SetGametypeSetting("antiBoostDistance", 0);
+
+    // === GENERAL GAMEPLAY & CLASSES ===
+    SetGametypeSetting("loadoutKillstreaksEnabled", 1); // Active by default
+    SetGametypeSetting("perksEnabled", 1); // Active by default
+    SetGametypeSetting("disableClassSelection", 0);
+    SetGametypeSetting("disableCAC", 0);
+    SetGametypeSetting("disableweapondrop", 0);
+    SetGametypeSetting("disableVehicleSpawners", 0);
+    SetGametypeSetting("forceRadar", 0);
+    SetGametypeSetting("scoreHeroPowerGainFactor", 1);
+    SetGametypeSetting("scoreHeroPowerTimeFactor", 1);
+
+    // === SPECTATOR & CAMERAS ===
+    SetGametypeSetting("spectateType", 1);
     SetGametypeSetting("allowSpectating", 1);
+    SetGametypeSetting("allowFinalKillcam", 1);
     SetGametypeSetting("allowInGameTeamChange", 1);
     SetGametypeSetting("autoTeamBalance", 1);
-    SetGametypeSetting("allowFinalKillcam", 1);
+    SetGametypeSetting("useEmblemInsteadOfFactionIcon", 0);
+
+    // === VOICE CHAT ===
+    SetGametypeSetting("voipDeadChatWithDead", 0);
+    SetGametypeSetting("voipDeadChatWithTeam", 0);
+    SetGametypeSetting("voipDeadHearTeamLiving", 0);
+    SetGametypeSetting("voipEveryoneHearsEveryone", 0);
+
+    // === ADVERTISING RULES ===
     SetGametypeSetting("gameAdvertisementRuleScorePercent", 0);
     SetGametypeSetting("gameAdvertisementRuleTimeLeft", 0);
     SetGametypeSetting("gameAdvertisementRuleRound", 0);
     SetGametypeSetting("gameAdvertisementRuleRoundsWon", 0);
+
+    // === BOMB & DEMOLITION (SD / DEM) ===
+    SetGametypeSetting("bombTimer", 0);
+    SetGametypeSetting("plantTime", 0);
+    SetGametypeSetting("defuseTime", 0);
+    SetGametypeSetting("multiBomb", 0);
+    SetGametypeSetting("extraTime", 0);
+    SetGametypeSetting("OvertimetimeLimit", 0);
+    SetGametypeSetting("silentPlant", 0);
+    SetGametypeSetting("roundStartExplosiveDelay", 0);
+    SetGametypeSetting("roundStartKillstreakDelay", 0);
+
+    // === ZONES & OBJECTIVES (DOM / KOTH) ===
+    SetGametypeSetting("captureTime", 0);
+    SetGametypeSetting("objectiveSpawnTime", 0);
+    SetGametypeSetting("autoDestroyTime", 0);
+    SetGametypeSetting("randomObjectiveLocations", 0);
+    SetGametypeSetting("scorePerPlayer", 0);
+    SetGametypeSetting("timePausesWhenInZone", 0);
+    SetGametypeSetting("flagCanBeNeutralized", 0);
+    SetGametypeSetting("kothMode", 0);
+
+    // === EVENTOS & SCOREBOOSTING ===
+    SetGametypeSetting("maxObjectiveEventsPerMinute", 0);
+    SetGametypeSetting("maxPlayerDefensive", 0);
+    SetGametypeSetting("maxPlayerOffensive", 0);
+    SetGametypeSetting("maxPlayerEventsPerMinute", 0);
+    SetGametypeSetting("playerKillsMax", 0);
+    SetGametypeSetting("totalKillsMax", 0);
+    SetGametypeSetting("teamKillScore", 0);
+    SetGametypeSetting("teamScorePerKill", 0);
+
+    // === GUN GAME & SAS (WAGER MATCHES) ===
+    SetGametypeSetting("wagermatchhud", 0);
+    SetGametypeSetting("gunSelection", 0);
+    SetGametypeSetting("setbacks", 0);
+    SetGametypeSetting("timecount", 0);
+    SetGametypeSetting("pointsPerPrimaryKill", 0);
+    SetGametypeSetting("pointsPerSecondaryKill", 0);
+    SetGametypeSetting("pointsPerPrimaryGrenadeKill", 0);
+    SetGametypeSetting("pointsPerMeleeKill", 0);
+
+    // === CAPTURE THE FLAG (CTF) Y BALL ===
+    SetGametypeSetting("enemyCarrierVisible", 0);
+    SetGametypeSetting("idleFlagResetTime", 0);
+    SetGametypeSetting("ballCount", 0);
+    SetGametypeSetting("carryScore", 0);
+    SetGametypeSetting("throwScore", 0);
+    SetGametypeSetting("carrierArmor", 100);
+
+    // === CLEAN (FRACTURE) ===
+    SetGametypeSetting("teamScorePerCleanDeposit", 0);
+    SetGametypeSetting("cleanDepositOfflineTime", 0);
+    SetGametypeSetting("cleanDepositOnlineTime", 0);
+    SetGametypeSetting("cleanDepositRotation", 0);
+
+    // === ESCORT (SAFEGUARD) ===
+    SetGametypeSetting("shutdownDamage", 0);
+    SetGametypeSetting("bootTime", 0);
+    SetGametypeSetting("rebootTime", 0);
+    SetGametypeSetting("rebootPlayers", 0);
+    SetGametypeSetting("movePlayers", 0);
+    SetGametypeSetting("robotSpeed", 1);
+    SetGametypeSetting("robotShield", 0);
 }
 
+// For now, due to issues with the "sv_maprotation" dvar, you can control your settings directly from here.
 function ApplyGametypeSettings(mode)
 {
     mode = tolower(mode);
@@ -937,26 +1031,43 @@ function ApplyGametypeSettings(mode)
     switch (mode)
     {
         case "tdm":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
             SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
             SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
             SetGametypeSetting("timelimit", 10);
             SetGametypeSetting("scorelimit", 100);
+            SetGametypeSetting("teamScorePerKill", 1);
             SetGametypeSetting("teamCount", 2);
-            SetGametypeSetting("roundlimit", 1);
-            SetGametypeSetting("roundwinlimit", 1);
+            SetGametypeSetting("roundLimit", 1);
             SetGametypeSetting("gameAdvertisementRuleScorePercent", 15);
             SetGametypeSetting("gameAdvertisementRuleTimeLeft", 2);
+            SetGametypeSetting("gameAdvertisementRuleRound", 0);
+            SetGametypeSetting("gameAdvertisementRuleRoundsWon", 0);
             break;
         case "dom":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
             SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
             SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
             SetGametypeSetting("timelimit", 0);
             SetGametypeSetting("scorelimit", 200);
             SetGametypeSetting("roundScoreLimit", 100);
-            SetGametypeSetting("roundlimit", 2);
-            SetGametypeSetting("roundwinlimit", 0);
             SetGametypeSetting("cumulativeRoundScores", 1);
             SetGametypeSetting("captureTime", 10);
+            SetGametypeSetting("roundlimit", 2);
             SetGametypeSetting("maxObjectiveEventsPerMinute", 3);
             SetGametypeSetting("maxPlayerDefensive", 128);
             SetGametypeSetting("maxPlayerOffensive", 128);
@@ -969,14 +1080,18 @@ function ApplyGametypeSettings(mode)
             break;
         case "koth":
             SetGametypeSetting("kothMode", 1);
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
             SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
             SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
             SetGametypeSetting("timelimit", 5);
             SetGametypeSetting("scorelimit", 250);
-            SetGametypeSetting("roundScoreLimit", 0);
-            SetGametypeSetting("roundlimit", 1);
-            SetGametypeSetting("roundwinlimit", 1);
-            SetGametypeSetting("cumulativeRoundScores", 0);
             SetGametypeSetting("teamCount", 2);
             SetGametypeSetting("maxPlayerEventsPerMinute", 8);
             SetGametypeSetting("autoDestroyTime", 60);
@@ -991,19 +1106,24 @@ function ApplyGametypeSettings(mode)
             SetGametypeSetting("gameAdvertisementRuleTimeLeft", 1.5);
             break;
         case "sd":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
             SetGametypeSetting("preroundperiod", 3);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
             SetGametypeSetting("spectateType", 3);
             SetGametypeSetting("timelimit", 2.5);
             SetGametypeSetting("scorelimit", 4);
-            SetGametypeSetting("roundScoreLimit", 0);
-            SetGametypeSetting("roundlimit", 0);
-            SetGametypeSetting("roundwinlimit", 0);
-            SetGametypeSetting("cumulativeRoundScores", 0);
             SetGametypeSetting("bombTimer", 45);
             SetGametypeSetting("plantTime", 5);
             SetGametypeSetting("defuseTime", 5);
             SetGametypeSetting("multiBomb", 0);
             SetGametypeSetting("roundswitch", 1);
+            SetGametypeSetting("roundlimit", 0);
             SetGametypeSetting("disableVehicleSpawners", 1);
             SetGametypeSetting("playerLives", 1);
             SetGametypeSetting("playerNumLives", 1);
@@ -1016,6 +1136,220 @@ function ApplyGametypeSettings(mode)
             SetGametypeSetting("scoreHeroPowerGainFactor", 0.8);
             SetGametypeSetting("scoreHeroPowerTimeFactor", 0.3);
             SetGametypeSetting("gameAdvertisementRuleRoundsWon", 3);
+            break;
+        case "dm":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 10);
+            SetGametypeSetting("scorelimit", 30);
+            SetGametypeSetting("disableTacInsert", 1);
+            SetGametypeSetting("useEmblemInsteadOfFactionIcon", 1);
+            SetGametypeSetting("voipEveryoneHearsEveryone", 1);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 50);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 2);
+            SetGametypeSetting("teamCount", 1);
+            break;
+        case "gun":
+            SetGametypeSetting("wagermatchhud", 1);
+            SetGametypeSetting("gunSelection", 3);
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 20);
+            SetGametypeSetting("preroundperiod", 10);
+            SetGametypeSetting("disableClassSelection", 1);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("timelimit", 10);
+            SetGametypeSetting("scorelimit", 30);
+            SetGametypeSetting("setbacks", 1);
+            SetGametypeSetting("forceRadar", 1);
+            SetGametypeSetting("loadoutKillstreaksEnabled", 0);
+            SetGametypeSetting("disableVehicleSpawners", 1);
+            SetGametypeSetting("disableweapondrop", 1);
+            SetGametypeSetting("perksEnabled", 0);
+            SetGametypeSetting("playerNumLives", 0);
+            SetGametypeSetting("useEmblemInsteadOfFactionIcon", 1);
+            SetGametypeSetting("voipEveryoneHearsEveryone", 1);
+            SetGametypeSetting("teamCount", 1);
+            break;
+        case "conf":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 10);
+            SetGametypeSetting("scorelimit", 100);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("teamScorePerKill", 0);
+            SetGametypeSetting("antiBoostDistance", 100);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.646);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.646);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 15);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 2);
+            break;
+        case "ctf":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 5);
+            SetGametypeSetting("scorelimit", 3);
+            SetGametypeSetting("roundLimit", 2);
+            SetGametypeSetting("roundwinlimit", 2);
+            SetGametypeSetting("enemyCarrierVisible", 2);
+            SetGametypeSetting("idleFlagResetTime", 30);
+            SetGametypeSetting("captureTime", 0);
+            SetGametypeSetting("defuseTime", 0);
+            SetGametypeSetting("playerRespawnDelay", 5);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.835);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.835);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 4);
+            SetGametypeSetting("gameAdvertisementRuleRound", 3);
+            break;
+        case "clean":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 10);
+            SetGametypeSetting("scorelimit", 60);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("teamScorePerKill", 0);
+            SetGametypeSetting("teamScorePerCleanDeposit", 1);
+            SetGametypeSetting("cleanDepositOfflineTime", 0);
+            SetGametypeSetting("cleanDepositOnlineTime", 60);
+            SetGametypeSetting("cleanDepositRotation", 1);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.646);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.646);
+            break;
+        case "escort":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 5);
+            SetGametypeSetting("scorelimit", 0);
+            SetGametypeSetting("roundscorelimit", 1);
+            SetGametypeSetting("roundwinlimit", 2);
+            SetGametypeSetting("roundlimit", 2);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("shutdownDamage", 3);
+            SetGametypeSetting("bootTime", 5);
+            SetGametypeSetting("rebootTime", 15);
+            SetGametypeSetting("rebootPlayers", 0);
+            SetGametypeSetting("movePlayers", 1);
+            SetGametypeSetting("robotSpeed", 1);
+            SetGametypeSetting("robotShield", 0);
+            SetGametypeSetting("disableVehicleSpawners", 1);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.788);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.788);
+            SetGametypeSetting("spawntraptriggertime", 5);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 3.5);
+            SetGametypeSetting("gameAdvertisementRuleRound", 3);
+            break;
+        case "infect":
+            SetGametypeSetting("prematchrequirement", 0);             
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 10);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 2);
+            SetGametypeSetting("scorelimit", 0);
+            SetGametypeSetting("teamCount", 2);
+            SetGametypeSetting("loadoutKillstreaksEnabled", 0);
+            SetGametypeSetting("disableVehicleSpawners", 1);
+            SetGametypeSetting("gameAdvertisementRuleScorePercent", 15);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 2);
+            SetGametypeSetting("gameAdvertisementRuleRound", 0);
+            SetGametypeSetting("gameAdvertisementRuleRoundsWon", 0);
+            break;
+        case "dem":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 2.5);
+            SetGametypeSetting("scorelimit", 2);
+            SetGametypeSetting("roundlimit", 0);
+            SetGametypeSetting("bombTimer", 45);
+            SetGametypeSetting("plantTime", 5);
+            SetGametypeSetting("defuseTime", 5);
+            SetGametypeSetting("extraTime", 2);
+            SetGametypeSetting("OvertimetimeLimit", 2);
+            SetGametypeSetting("silentPlant", 0);
+            SetGametypeSetting("roundStartExplosiveDelay", 2);
+            SetGametypeSetting("roundStartKillstreakDelay", 15);
+            SetGametypeSetting("maxObjectiveEventsPerMinute", 5);
+            SetGametypeSetting("maxPlayerDefensive", 128);
+            SetGametypeSetting("maxPlayerEventsPerMinute", 2.5);
+            SetGametypeSetting("spawntraptriggertime", 10);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.679);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.679);
+            SetGametypeSetting("gameAdvertisementRuleRound", 3);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 1);
+            break;
+        case "ball":
+            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirementtime", 0);
+            SetGametypeSetting("prematchperiod", 15);
+            SetGametypeSetting("preroundperiod", 5);
+            SetGametypeSetting("inactivityKick", 120);
+            SetGametypeSetting("allowSpectating", 1);
+            SetGametypeSetting("spectateType", 1);
+            SetGametypeSetting("allowInGameTeamChange", 1);
+            SetGametypeSetting("autoTeamBalance", 1);
+            SetGametypeSetting("allowFinalKillcam", 1);
+            SetGametypeSetting("timelimit", 5);
+            SetGametypeSetting("roundScoreLimit", 10);
+            SetGametypeSetting("scorelimit", 0);
+            SetGametypeSetting("roundlimit", 2);
+            SetGametypeSetting("ballCount", 1);
+            SetGametypeSetting("carryScore", 2);
+            SetGametypeSetting("throwScore", 1);
+            SetGametypeSetting("carrierArmor", 100);
+            SetGametypeSetting("idleFlagResetTime", 15);
+            SetGametypeSetting("scoreHeroPowerGainFactor", 0.684);
+            SetGametypeSetting("scoreHeroPowerTimeFactor", 0.684);
+            SetGametypeSetting("enemyCarrierVisible", 2);
+            SetGametypeSetting("captureTime", 0);
+            SetGametypeSetting("defuseTime", 0);
+            SetGametypeSetting("spawntraptriggertime", 10);
+            SetGametypeSetting("gameAdvertisementRuleTimeLeft", 4);
+            SetGametypeSetting("gameAdvertisementRuleRound", 3);
             break;
     }
 }
@@ -1046,8 +1380,6 @@ function insertMap(key, displayname, image, exec_rotation)
 	level.maps_data[key].exec_rotation = exec_rotation;
 	level.maps_data[key].image = image;
 }
-
-//img_t7_menu_mp_preview_biodome
 
 function BuildMapsData()
 {
