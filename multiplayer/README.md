@@ -23,9 +23,6 @@ This avoids maintaining separate copies of the voting logic solely to support in
 
 The preview mod provides the custom materials and images used by the MapVote interface.
 
-- **Steam Workshop ID:** `3827969881`
-- **Workshop page:** https://steamcommunity.com/sharedfiles/filedetails/?id=3827969881
-
 Servers that want to display map previews must make the client mod available to their players and configure it according to the requirements of their BOIII client and server setup.
 
 The mod is optional. Servers that do not use it can still use the MapVote functionality without custom map previews.

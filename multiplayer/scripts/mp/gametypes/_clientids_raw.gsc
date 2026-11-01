@@ -84,18 +84,19 @@
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
 	set mv_gametypes 		"tdm dom koth sd"				// This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
-	set mv_minplayers               1                       // Minimum players that must be on the server for map voting to be activated.
+	set mv_minplayers               1                       // Minimum players that must be on the server for map voting to be activated. 
 
-
+    
     Version: 0.1.0
 	- 3 and 5 maps support
 	- Credits, sentence and social on bottom left
 	- Simple keyboard and controller button support
 	- Allow to load gametypes
 
-	Version: v1.0.0 (luismrntezz)
+	Version: v1.0.0 by luismrntezz
 	- A mod for image loading was added
 	- The vote change was added
+	- FastDL support included
 	- A rule management system via GSC was added for the gametypes
 */
 
@@ -131,7 +132,7 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_minplayers", 1);
 	if (getDvarInt("mv_enable") != 1) // Check if mapvote is enable
 		return;						  // End if the mapvote its not enable
-
+       	
 	level.mapvote = [];
 	SetDvarIfNotInizialized("mv_time", 20);
 	level.mapvote["time"] = getDvarInt("mv_time");
@@ -145,7 +146,8 @@ function MapvoteConfigurate()
 	//{
 	//	level.end_game_video.duration = level.end_game_video.duration + level.mapvote["time"];
 	// }
-	SetDvarIfNotInizialized("mv_maps", "mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena");
+	SetDvarIfNotInizialized("mv_maps", "mp_nuketown_x mp_skyjacked mp_stronghold mp_redwood mp_sector");
+    // mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena
 
 	// PreCache maps images
 	maps_data = [];
@@ -156,8 +158,8 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_socials", 1);
 	SetDvarIfNotInizialized("mv_extramaps", 1);
 	SetDvarIfNotInizialized("mv_socialname", "Discord");
-	SetDvarIfNotInizialized("mv_sociallink", "Discord.gg/^3xlabs^7");
-	SetDvarIfNotInizialized("mv_sentence", "Thanks for Playing by @^5DoktorSAS");
+	SetDvarIfNotInizialized("mv_sociallink", "^7discord.gg/^5ZR8bBDfjK8");
+	SetDvarIfNotInizialized("mv_sentence", "Thanks for playing");
 	SetDvarIfNotInizialized("mv_votecolor", "5");
 	SetDvarIfNotInizialized("mv_arrowcolor", "white");
 	SetDvarIfNotInizialized("mv_blur", "3");
@@ -167,7 +169,7 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_gametypes", "tdm dom koth sd"); // Add the ones you want to appear
 	setDvarIfNotInizialized("mv_excludedmaps", "");
 
-	// Nota: It is on end game and lock the game in the state but it display a fully white screen
+	// Note: It is on end game and lock the game in the state but it display a fully white screen
 	// level waittill("sfade");
 	// level thread MapvoteStart();
 }
@@ -250,7 +252,7 @@ function MapvotePlayerUI()
 	boxes[0] = self CreateRectangle("CENTER", "CENTER", -220, -452, 205, 133, scroll_color, "white", 1, 0);
 	boxes[1] = self CreateRectangle("CENTER", "CENTER", 0, -452, 205, 133, bg_color, "white", 1, 0);
 	boxes[2] = self CreateRectangle("CENTER", "CENTER", 220, -452, 205, 133, bg_color, "white", 1, 0);
-
+    
     previews = [];
     previews[0] = self DrawShader( level.mapvote["map1"].image, -220, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
     previews[1] = self DrawShader( level.mapvote["map2"].image,    0, -468, 197, 96, (1, 1, 1), 1, 3, "CENTER", "CENTER" );
@@ -288,7 +290,7 @@ function MapvotePlayerUI()
 		boxes[1] affectElement("y", 1.2, -50);
 		boxes[2] affectElement("y", 1.2, -50);
 	}
-
+    
     for (i = 0; i < previews.size; i++)
     {
         if (isDefined(previews[i]))
@@ -312,8 +314,9 @@ function MapvotePlayerUI()
     }
 
 	self thread DestroyBoxes(boxes, previews);
-	self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
+	// self.statusicon = "uie_t7_hud_waypoints_compassping_enemy"; // Red dot
 	level waittill("mv_start_vote");
+
 	boxes[0] affectElement("alpha", 0.2, 1);
 	boxes[1] affectElement("alpha", 0.2, 1);
 	boxes[2] affectElement("alpha", 0.2, 1);
@@ -370,7 +373,7 @@ function MapvotePlayerUI()
 	        if (self.mv_vote != index)
 	        {
 	            self.mv_vote = index;
-	            self.statusicon = "compassping_friendlyyelling_mp";
+	            // self.statusicon = "compassping_friendlyyelling_mp";
 
 	            vote = "vote" + (index + 1);
 	            level notify("mv_vote_cast");
@@ -502,7 +505,7 @@ function MapvoteStart()
 		}
 
 		mapschoosed = MapvoteGetRandomMaps(maps_keys, times);
-
+		
 		gametypes = [];
 		gametypes = strTok(getDvarString("mv_gametypes"), " ");
 		level.mapvote["map1"] = level.maps_data[mapschoosed[0]];
@@ -604,6 +607,7 @@ function MapvoteServerUI()
     }
 
     wait 1;
+
     level notify("mv_start_vote");
 
     mv_sentence = GetDvarString("mv_sentence");
@@ -615,7 +619,7 @@ function MapvoteServerUI()
 
     credits setText(
         mv_sentence +
-        "\nDeveloped by @^5DoktorSAS\n" +
+        "\n^7Developed by @^5DoktorSAS\n" +
         mv_socialname + ": " + mv_sociallink
     );
 
@@ -852,9 +856,9 @@ function MapvoteSetRotation(mapid, gametype)
     setDvar("nextmap", "map " + mapid);
 
     level notify("mv_ended");
-
-    // Forzamos la carga inmediata del nivel ganador
-    ExitLevel(false);
+    
+    // We force the immediate loading of the winning level.
+    ExitLevel(false); 
 }
 
 
@@ -865,7 +869,7 @@ function GetGametypeDisplayName(gametype)
 
     if (!isDefined(displayName) || tolower(displayName) == "invalid")
     {
-        // Display the actual identifier so that any mode
+        // Display the actual identifier so that any mode 
         // that does not yet have a name configured can be recognized.
         return toUpper(mode);
     }
@@ -1037,6 +1041,7 @@ function ApplyGametypeSettings(mode)
             SetGametypeSetting("allowFinalKillcam", 1);
             SetGametypeSetting("timelimit", 10);
             SetGametypeSetting("scorelimit", 100);
+            SetGametypeSetting("teamScorePerKill", 1);
             SetGametypeSetting("teamCount", 2);
             SetGametypeSetting("roundLimit", 1);
             SetGametypeSetting("gameAdvertisementRuleScorePercent", 15);
@@ -1268,7 +1273,7 @@ function ApplyGametypeSettings(mode)
             SetGametypeSetting("gameAdvertisementRuleRound", 3);
             break;
         case "infect":
-            SetGametypeSetting("prematchrequirement", 0);
+            SetGametypeSetting("prematchrequirement", 0);             
             SetGametypeSetting("prematchrequirementtime", 0);
             SetGametypeSetting("prematchperiod", 15);
             SetGametypeSetting("preroundperiod", 10);
