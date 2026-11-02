@@ -149,6 +149,8 @@ function MapvoteConfigurate()
     /* Here all maps: mp_ruins mp_miniature mp_western mp_city mp_biodome mp_sector mp_redwood mp_nuketown_x mp_apartments mp_spire mp_chinatown mp_veiled mp_havoc 
        mp_ethiopia mp_infection mp_metro mp_stronghold mp_crucible mp_rise mp_skyjacked mp_waterpark mp_kung_fu mp_conduit mp_aerospace mp_banzai mp_shrine mp_cryogen mp_rome mp_arena */
 
+	SetDvarIfNotInizialized("mv_previews", 1);
+
 	// PreCache maps images
 	BuildMapsData();
 
@@ -168,7 +170,6 @@ function MapvoteConfigurate()
 	SetDvarIfNotInizialized("mv_gametypes", "tdm dom koth sd"); // Add the ones you want to appear
 	setDvarIfNotInizialized("mv_excludedmaps", "");
     SetDvarIfNotInizialized("mv_minplayers", 1);
-    SetDvarIfNotInizialized("mv_previews", 0);
 
 	// Note: It is on end game and lock the game in the state but it display a fully white screen
 	// level waittill("sfade");
@@ -199,29 +200,45 @@ function on_player_spawned() // Patch for blur effect persisting (TODO: This iss
 
 function handlePlayerButtons()
 {
-	self endon("disconnect");
-	level endon("mv_destroy_hud");
-	while (true)
-	{
-		if (self AdsButtonPressed())
-		{
-			self notify("right");
-			wait 0.05;
-		}
+    self endon("disconnect");
+    level endon("mv_destroy_hud");
 
-		if (self AttackButtonPressed())
-		{
-			self notify("left");
-			wait 0.05;
-		}
+    while (true)
+    {
+        if (self AdsButtonPressed())
+        {
+            self notify("right");
 
-		if (self UseButtonPressed() || self JumpButtonPressed() || self ReloadButtonPressed())
-		{
-			self notify("select");
-			wait 0.05;
-		}
-		wait 0.05;
-	}
+            while (self AdsButtonPressed())
+            {
+                wait 0.05;
+            }
+        }
+        else if (self AttackButtonPressed())
+        {
+            self notify("left");
+
+            while (self AttackButtonPressed())
+            {
+                wait 0.05;
+            }
+        }
+        else if (self UseButtonPressed() ||
+                 self JumpButtonPressed() ||
+                 self ReloadButtonPressed())
+        {
+            self notify("select");
+
+            while (self UseButtonPressed() ||
+                   self JumpButtonPressed() ||
+                   self ReloadButtonPressed())
+            {
+                wait 0.05;
+            }
+        }
+
+        wait 0.05;
+    }
 }
 
 // utils.gsc
@@ -339,20 +356,19 @@ function MapvotePlayerUI()
     }
 	
 	index = 0;
-    previuesindex = -1;
+	previuesindex = -1;
 	select_color = GetColor(GetDvarString("mv_selectcolor"));
 
 	while (true)
 	{
 	    command = self util::waittill_any_return("left", "right", "select", "done");
 
-	    // Voting has ended.
 	    if (command == "done")
 	    {
 	        break;
 	    }
 
-	    // Move the cursor to the right.
+	    // Move the selection to the right.
 	    if (command == "right")
 	    {
 	        index++;
@@ -362,7 +378,7 @@ function MapvotePlayerUI()
 	            index = 0;
 	        }
 	    }
-	    // Move the cursor to the left.
+	    // Move the selection to the left.
 	    else if (command == "left")
 	    {
 	        index--;
@@ -372,35 +388,43 @@ function MapvotePlayerUI()
 	            index = boxes.size - 1;
 	        }
 	    }
-	    // Cast or change the vote.
-	    else if (command == "select")
+	    // Register or change the vote.
+	    if (command == "select")
 	    {
 	        if (previuesindex != index)
 	        {
-                // self.statusicon = "compassping_friendlyyelling_mp";
-                if (previuesindex >= 0) // This section is to remove the vote on the previues voted map
-                {
-                    boxes[previuesindex] affectElement("color", 0.2, bg_color);
-                    vote = "vote" + (index + 1);
-	                level notify("mv_vote_cast");
-                }
+	        	// Clear previous selection.
+	            if (previuesindex >= 0)
+	            {
+	            	boxes[previuesindex] affectElement("color", 0.2, bg_color);
+	            }
 
-                wait 0.05;
-                previuesindex = index;
-                boxes[index] affectElement("color", 0.2, select_color);
+	            previuesindex = index;
+
+	            boxes[index] affectElement("color", 0.2, select_color);
+
+	            self.mv_vote = index;
+	            level notify("mv_vote_cast");
+
+	            wait 0.05;
 	        }
 	    }
         else
         {
-			for (i = 0; i < boxes.size; i++)
-			{
-				if (i != index)
-					boxes[i] affectElement("color", 0.2, bg_color);
-				else
-					boxes[i] affectElement("color", 0.2, scroll_color);
-			}
-		}
-	}
+            // Update the selection indicator while scrolling.
+            for (i = 0; i < boxes.size; i++)
+            {
+                if (i != index)
+                {
+                    boxes[i] affectElement("color", 0.2, bg_color);
+                }
+                else
+                {
+                    boxes[i] affectElement("color", 0.2, scroll_color);
+                }
+            }
+        }
+    }
 }
 
 function DestroyBoxes(boxes, previews)
@@ -415,7 +439,7 @@ function DestroyBoxes(boxes, previews)
         }
     }
 
-    if(getDvarInt("mp_previews") == 1)
+    if (getDvarInt("mv_previews") == 1)
     {
         foreach (preview in previews)
         {
@@ -435,9 +459,10 @@ function DestroyBoxes(boxes, previews)
             box hud::destroyElem();
         }
     }
-    if(getDvarInt("mp_previews") == 1)
+
+    if (getDvarInt("mv_previews") == 1)
     {
-         oreach (preview in previews)
+        foreach (preview in previews)
         {
             if (isDefined(preview))
             {
