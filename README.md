@@ -11,7 +11,7 @@
 - **Zombies** *(Call of Duty: Black Ops III Zombies)* `PC`
 
 ## Usage
-The page layout indicates where the files should be placed. The project is divided into two sections: [multiplayer](/tree/main/multiplayer) & [zombies](/tree/main/zombies).
+The page layout indicates where the files should be placed. The project is divided into two sections: [multiplayer](/multiplayer/README.md) & [zombies](/zombies/README.md).
 
 Each section contains all the information needed to set up these Mapvote´s quickly and easily on your dedicated server.
 
