@@ -11,11 +11,9 @@
 - **Zombies** *(Call of Duty: Black Ops III Zombies)* `PC`
 
 ## Usage
-The organization of the page shows where the files are to be placed. 
-The entire mp_mapvote/zm_mapvote folders are mods that should be compiled and used as mods.
+The page layout indicates where the files should be placed. The project is divided into two sections: [multiplayer](/multiplayer/README.md) & [zombies](/zombies/README.md).
 
-As for the BOIII project, only the compiled file can be uploaded. Just put the file in the correct path.
-In mp_mapvote it should be put in `<Server Directory>/scripts/mp/gametypes/` while for zm_mapvote it should be put in `<Server Directory>/scripts/zm/gametypes/ `
+Each section contains all the information needed to set up these Mapvote´s quickly and easily on your dedicated server.
 
 ## Disclaimer
 Those scripts have been created purely for the purposes of academic research. Project maintainers are not responsible or liable for misuse of the software. Use responsibly. The project is protected by a GNU license so you are free to use it as long as the code is opensource and not sold. 
