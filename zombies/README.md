@@ -2,6 +2,9 @@
 
 A Mapvote implementation for Black Ops III zombies, focused on community dedicated servers.
 
+<img width="1919" height="1079" alt="Captura de pantalla 2026-11-23 013842" src="https://github.com/user-attachments/assets/342c98ed-ebb5-4e83-a607-7ceedbe3bf29" />
+
+
 ## Features
 * **Map selection** with support for three or five options.
 * **Ability to change** votes while the voting period is active.
