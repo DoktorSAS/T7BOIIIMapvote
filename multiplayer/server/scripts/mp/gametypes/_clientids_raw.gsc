@@ -80,7 +80,7 @@
 	set mv_sentence 		"Thanks for playing" 	// Thankfull sentence
 	set mv_votecolor		"5" 					// Color of the Vote Number
 	set mv_arrowcolor		"white"					// RGB Color of the arrows
-	set mv_selectcolor 		"lighgreen"				// RGB Color when map get voted
+	set mv_selectcolor 		"lightgreen"			// RGB Color when map get voted
 	set mv_backgroundcolor 	"grey"					// RGB Color of map background
 	set mv_blur 			"3"						// Blur effect power
 	set mv_gametypes 		"tdm dom koth sd"       // This dvar can be used to have multiple gametypes with different maps, with this dvar you can load gamemode cfg files
@@ -1532,7 +1532,7 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 
     hud.hidden = false;
     hud.archived = false;
-    hud.hideWhenInMenu = false;
+    hud.hideWhenInMenu = true;
 
     hud SetShader(shader, width, height);
 
