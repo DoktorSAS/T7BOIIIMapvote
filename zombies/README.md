@@ -2,6 +2,9 @@
 
 A Mapvote implementation for Black Ops III zombies, focused on community dedicated servers.
 
+<img width="1919" height="1079" alt="Captura de pantalla 2026-11-23 013842" src="https://github.com/user-attachments/assets/342c98ed-ebb5-4e83-a607-7ceedbe3bf29" />
+
+
 ## Features
 * **Map selection** with support for three or five options.
 * **Ability to change** votes while the voting period is active.
@@ -18,6 +21,18 @@ The server-side scripts are located in `/server/scripts/zm/gametypes`.
 This same implementation works with or without the preview mod. If the mod is not loaded, the Mapvote will still function, but map preview images will not be displayed. This avoids having to maintain separate versions of the voting logic just to support installations that do not use images.
 
 You can find the dvar configurations for your `server_zm.cfg` in `/server/zone`.
+
+### Ezz Client (Optional)
+>[!IMPORTANT]
+> For Ezz client users only
+
+For servers running Ezz BOIII, we recommend the dedicated Zombies script. For a standard Black Ops III installation or any other client, follow the general server instructions mentioned above (the standard installation described above also works for Ezz).
+
+Steps:
+1. Copy [ezz_client_mapvote_zm.gsc](ezz_client_mapvote_zm.gsc) to `<server folder>/boiii/custom_scripts/zm/`. Create the directory if needed.
+2. Use the settings in [zm_config.cfg](server/zone/zm_config.cfg) in your `server_zm.cfg`. Restart the Zombies server to load the script.
+
+> The image preview mod remains compatible with this version.
 
 ## Client
 > [!NOTE]

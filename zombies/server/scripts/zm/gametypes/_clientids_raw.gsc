@@ -56,13 +56,13 @@
 	Version: v1.0.0
 	Config:
 	set mv_enable			1 						// Enable/Disable the mapvote
-	set mv_maps				""						// Lits of maps that can be voted on the mapvote, leave empty for all maps
+	set mv_maps				""						// List of maps that can be voted on the mapvote, leave empty for all maps
 	set mv_extramaps        0                       // Enable 5 maps mapvote when set to 1
-	set mv_excludedmaps		""						// Lis of maps you don't want to show in the mapvote
+	set mv_excludedmaps		""						// List of maps you don't want to show in the mapvote
 	set mv_time 			20 						// Time to vote
-	set mv_socialname 		"SocialName" 			// Name of the server social such as Discord, Twitter, Website, etc
-	set mv_sociallink       "discord.gg/^3xlabs^7"
-	set mv_sentence 		"Thanks for playing" 	// Thankfull sentence
+	set mv_socialname 		"Discord" 		     	// Name of the server social such as Discord, Twitter, Website, etc
+	set mv_sociallink       "discord.gg/^3xlabs^7"  // Add your social link
+	set mv_sentence 		"Thanks for playing" 	// Thankful sentence
 	set mv_votecolor		"5" 					// Color of the Vote Number
 	set mv_arrowcolor		"white"					// RGB Color of the arrows
 	set mv_selectcolor 		"lighgreen"				// RGB Color when map get voted
@@ -107,7 +107,11 @@ function init()
 
 function custom_end_screen()
 {
-	[[level.custom_end_screen_original]]();
+	if (isDefined(level.custom_end_screen_original))
+	{
+		level [[level.custom_end_screen_original]]();
+	}
+
 	MapvoteStart();
 }
 
@@ -984,7 +988,7 @@ function DrawShader(shader, x, y, width, height, color, alpha, sort, align, rela
 
     hud.hidden = false;
     hud.archived = false;
-    hud.hideWhenInMenu = false;
+    hud.hideWhenInMenu = true;
 
     hud SetShader(shader, width, height);
 
